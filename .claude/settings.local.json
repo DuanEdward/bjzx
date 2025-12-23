@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn dependency:resolve:*)",
+      "Bash(./mvnw:*)",
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(java:*)",
+      "Bash(chmod:*)",
+      "Bash(javac:*)",
+      "Bash(echo:*)",
+      "Bash(/usr/libexec/java_home:*)",
+      "Bash(export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-1.8.jdk/Contents/Home:*)",
+      "Bash(find:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(mvn spring-boot:run:*)",
+      "Bash(JAVA_OPTS=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005\" ./mvnw:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(brew:*)",
+      "Bash(docker:*)",
+      "Bash(pkill -f \"HebeiCsApplication\")",
+      "Bash(xargs kill:*)",
+      "Bash(mvn compile:*)",
+      "Bash(mysql:*)",
+      "Bash(pkill:*)"
+    ]
+  }
+}

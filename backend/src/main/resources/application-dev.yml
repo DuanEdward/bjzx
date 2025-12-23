@@ -1,0 +1,26 @@
+spring:
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/hebei_cs_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  # 开发环境不使用Redis
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 1
+
+# 文件存储配置（开发环境）
+file:
+  upload-path: ./uploads
+  access-path: /uploads
+
+# 日志配置
+logging:
+  level:
+    root: info
+    com.hebei.cs: debug
+    org.springframework.web: debug
+    org.springframework.security: debug

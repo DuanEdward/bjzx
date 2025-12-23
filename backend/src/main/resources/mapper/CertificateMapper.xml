@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hebei.cs.mapper.CertificateMapper">
+
+    <select id="selectCertificateList" resultType="com.hebei.cs.entity.Certificate">
+        SELECT * FROM certificate
+        WHERE deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        <if test="number != null and number != ''">
+            AND number LIKE CONCAT('%', #{number}, '%')
+        </if>
+        <if test="holder != null and holder != ''">
+            AND holder LIKE CONCAT('%', #{holder}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPublicCertificateList" resultType="com.hebei.cs.entity.Certificate">
+        SELECT * FROM certificate
+        WHERE deleted = 0 AND is_public = 1
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        <if test="number != null and number != ''">
+            AND number LIKE CONCAT('%', #{number}, '%')
+        </if>
+        <if test="holder != null and holder != ''">
+            AND holder LIKE CONCAT('%', #{holder}, '%')
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

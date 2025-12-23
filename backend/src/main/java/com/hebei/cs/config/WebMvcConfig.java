@@ -1,0 +1,40 @@
+package com.hebei.cs.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Web MVC配置
+ *
+ * @author Hebei CS
+ * @since 2024-01-10
+ */
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    /**
+     * 静态资源配置
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 文件上传路径
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:./uploads/");
+    }
+
+    /**
+     * 跨域配置
+     */
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
+
+}
