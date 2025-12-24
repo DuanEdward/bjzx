@@ -1,7 +1,7 @@
 -- 河北省计算机学会网站初始化数据
 -- 创建时间: 2024-01-10
 
-USE hebei_cs;
+USE bjzxjj;
 
 -- 1. 角色初始化
 INSERT INTO `roles` (`name`, `code`, `description`) VALUES
@@ -71,9 +71,7 @@ INSERT INTO `news` (`title`, `summary`, `content`, `author`, `category_id`, `sta
 -- 8. 活动数据初始化
 INSERT INTO `activities` (`title`, `summary`, `content`, `location`, `start_time`, `end_time`, `registration_deadline`, `max_participants`, `current_participants`, `status`, `is_registration_open`, `created_by`) VALUES
 ('北京中兴建机职业技能鉴定中心2024年工作部署会', '北京中兴建机职业技能鉴定中心2024年工作部署会，包含年度计划、鉴定标准、培训安排等活动。', '<p>北京中兴建机职业技能鉴定中心2024年工作部署会将于2024年3月15-17日在北京举行。</p>', '北京市', '2024-03-15 09:00:00', '2024-03-17 17:00:00', '2024-03-10 23:59:59', 200, 85, 0, 1, 1),
-
-'建筑机械技能提升研讨会', '探讨建筑机械技能最新发展动态和应用前景。', '<p>本次研讨会将邀请国内外建筑机械领域专家分享最新技能研究成果。</p>', '北京市会议中心', '2024-02-24 09:00:00', '2024-02-24 17:00:00', '2024-02-20 23:59:59', 100, 67, 1, 1, 1),
-
+('建筑机械技能提升研讨会', '探讨建筑机械技能最新发展动态和应用前景。', '<p>本次研讨会将邀请国内外建筑机械领域专家分享最新技能研究成果。</p>', '北京市会议中心', '2024-02-24 09:00:00', '2024-02-24 17:00:00', '2024-02-20 23:59:59', 100, 67, 1, 1, 1),
 ('青年技能人才论坛', '为青年建筑机械技能人才提供交流平台。', '<p>青年技能人才论坛旨在促进青年技能人才之间的交流与合作。</p>', '北京市', '2024-04-10 14:00:00', '2024-04-10 18:00:00', '2024-04-05 23:59:59', 80, 23, 0, 1, 1);
 
 -- 9. 会员数据初始化
@@ -87,10 +85,8 @@ INSERT INTO `members` (`name`, `gender`, `birth_date`, `title`, `company`, `emai
 -- 10. 资源数据初始化
 INSERT INTO `resources` (`title`, `description`, `file_url`, `file_name`, `file_size`, `file_type`, `category_id`, `created_by`) VALUES
 ('机器学习基础教程', '机器学习入门教程，适合初学者阅读。', 'https://example.com/files/ml-tutorial.pdf', '机器学习基础教程.pdf', 5242880, 'pdf', 5, 1),
-
-'Python编程实践', 'Python编程实战案例集合。', 'https://example.com/files/python-practice.zip', 'python-practice.zip', 10485760, 'zip', 5, 1),
-
-'2023年人工智能发展报告', '2023年人工智能技术发展现状和趋势分析报告。', 'https://example.com/files/ai-report-2023.pdf', '2023年人工智能发展报告.pdf', 3145728, 'pdf', 2, 1);
+('Python编程实践', 'Python编程实战案例集合。', 'https://example.com/files/python-practice.zip', 'python-practice.zip', 10485760, 'zip', 5, 1),
+('2023年人工智能发展报告', '2023年人工智能技术发展现状和趋势分析报告。', 'https://example.com/files/ai-report-2023.pdf', '2023年人工智能发展报告.pdf', 3145728, 'pdf', 2, 1);
 
 -- 11. 系统设置初始化
 INSERT INTO `system_settings` (`key`, `value`, `description`, `type`) VALUES
