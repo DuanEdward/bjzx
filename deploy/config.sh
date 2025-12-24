@@ -16,7 +16,7 @@ DOMAIN_WWW="www.bjzxjj.org.cn"
 MYSQL_ROOT_PASSWORD="Root@123456"  # MySQL root密码（必填）
 DB_NAME="bjzxjj"        # 数据库名
 DB_USER="bjzxjj_user"   # 数据库用户名
-DB_PASSWORD="bjzx123456"          # 数据库密码（必填）
+DB_PASSWORD="Bjzx@123456"          # 数据库密码（必填）
 
 # JWT密钥（生产环境建议使用复杂的随机字符串）
 JWT_SECRET="bjzxjj-website-jwt-secret-key-2024-prod-$(date +%s)"
