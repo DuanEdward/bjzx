@@ -116,14 +116,15 @@ else
 fi
 
 # 安装Node.js 18.x (用于构建前端) - 如果已安装可跳过
-# echo "安装Node.js 18.x..."
-# if ! command -v node &> /dev/null; then
-#     curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
-#     yum install -y nodejs
-#     echo "Node.js 安装完成: $(node -v)"
-# else
-#     echo "Node.js 已安装: $(node -v)"
-# fi
+echo "检查Node.js安装状态..."
+if ! command -v node &> /dev/null; then
+    echo "Node.js未安装，开始安装Node.js 18.x..."
+    curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+    yum install -y nodejs
+    echo "Node.js 安装完成: $(node -v)"
+else
+    echo "Node.js 已安装: $(node -v)，跳过安装步骤"
+fi
 
 # 安装Nginx
 echo "安装Nginx..."

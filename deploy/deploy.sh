@@ -64,6 +64,19 @@ echo -e "${GREEN}后端构建完成${NC}"
 echo -e "${YELLOW}[2/5] 构建前端项目...${NC}"
 cd ${PROJECT_SOURCE_DIR}/frontend
 
+# 检查Node.js和npm是否安装
+if ! command -v npm &> /dev/null; then
+    echo -e "${RED}错误: npm未安装，请先安装Node.js${NC}"
+    echo "执行以下命令安装Node.js 18.x:"
+    echo "  curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -"
+    echo "  yum install -y nodejs"
+    echo "或者运行环境准备脚本: ./prepare.sh"
+    exit 1
+fi
+
+echo "Node.js版本: $(node -v)"
+echo "npm版本: $(npm -v)"
+
 # 安装依赖（如果需要）
 if [ ! -d "node_modules" ]; then
     echo "安装前端依赖..."
