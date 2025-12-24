@@ -48,8 +48,8 @@ public class CertificateServiceImpl extends ServiceImpl<CertificateMapper, Certi
     }
 
     @Override
-    public List<Certificate> getPublicCertificateList(String name, String type, String number, String holder) {
-        return baseMapper.selectPublicCertificateList(name, type, number, holder);
+    public List<Certificate> getPublicCertificateList(String name, String type, String number, String holder, String idCard) {
+        return baseMapper.selectPublicCertificateList(name, type, number, holder, idCard);
     }
 
     @Override

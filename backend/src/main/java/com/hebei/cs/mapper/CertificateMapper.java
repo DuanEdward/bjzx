@@ -31,5 +31,6 @@ public interface CertificateMapper extends BaseMapper<Certificate> {
     List<Certificate> selectPublicCertificateList(@Param("name") String name,
                                                    @Param("type") String type,
                                                    @Param("number") String number,
-                                                   @Param("holder") String holder);
+                                                   @Param("holder") String holder,
+                                                   @Param("idCard") String idCard);
 }

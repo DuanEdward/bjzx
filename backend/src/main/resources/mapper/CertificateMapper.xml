@@ -38,6 +38,9 @@
         <if test="holder != null and holder != ''">
             AND holder LIKE CONCAT('%', #{holder}, '%')
         </if>
+        <if test="idCard != null and idCard != ''">
+            AND holder_contact LIKE CONCAT('%', #{idCard}, '%')
+        </if>
         ORDER BY create_time DESC
     </select>
 

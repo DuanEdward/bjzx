@@ -28,7 +28,7 @@ public interface CertificateService extends IService<Certificate> {
     /**
      * 查询公开证件列表
      */
-    List<Certificate> getPublicCertificateList(String name, String type, String number, String holder);
+    List<Certificate> getPublicCertificateList(String name, String type, String number, String holder, String idCard);
 
     /**
      * 根据ID获取证件详情

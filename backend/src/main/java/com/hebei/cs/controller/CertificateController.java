@@ -106,9 +106,10 @@ public class CertificateController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String number,
-            @RequestParam(required = false) String holder) {
+            @RequestParam(required = false) String holder,
+            @RequestParam(required = false) String idCard) {
         try {
-            List<Certificate> list = certificateService.getPublicCertificateList(name, type, number, holder);
+            List<Certificate> list = certificateService.getPublicCertificateList(name, type, number, holder, idCard);
             return Result.success("查询成功", list);
         } catch (Exception e) {
             log.error("查询公开证件列表失败", e);

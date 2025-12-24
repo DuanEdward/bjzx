@@ -38,49 +38,49 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 步骤1: 环境准备
-echo -e "${YELLOW}[步骤 1/5] 准备部署环境...${NC}"
-read -p "是否运行环境准备脚本？(y/n): " RUN_PREPARE
-if [ "$RUN_PREPARE" = "y" ] || [ "$RUN_PREPARE" = "Y" ]; then
-    bash ${SCRIPT_DIR}/prepare.sh
-else
-    echo "跳过环境准备"
-fi
+# 步骤1: 环境准备 - 首次部署时需要，后续可跳过
+# echo -e "${YELLOW}[步骤 1/5] 准备部署环境...${NC}"
+# read -p "是否运行环境准备脚本？(y/n): " RUN_PREPARE
+# if [ "$RUN_PREPARE" = "y" ] || [ "$RUN_PREPARE" = "Y" ]; then
+#     bash ${SCRIPT_DIR}/prepare.sh
+# else
+#     echo "跳过环境准备"
+# fi
 
-# 步骤2: 初始化数据库
-echo -e "${YELLOW}[步骤 2/5] 初始化数据库...${NC}"
-read -p "是否初始化数据库？(y/n): " RUN_INIT_DB
-if [ "$RUN_INIT_DB" = "y" ] || [ "$RUN_INIT_DB" = "Y" ]; then
-    bash ${SCRIPT_DIR}/init-database.sh
-else
-    echo "跳过数据库初始化"
-fi
+# 步骤2: 初始化数据库 - 首次部署时需要，后续可跳过
+# echo -e "${YELLOW}[步骤 2/5] 初始化数据库...${NC}"
+# read -p "是否初始化数据库？(y/n): " RUN_INIT_DB
+# if [ "$RUN_INIT_DB" = "y" ] || [ "$RUN_INIT_DB" = "Y" ]; then
+#     bash ${SCRIPT_DIR}/init-database.sh
+# else
+#     echo "跳过数据库初始化"
+# fi
 
-# 步骤3: 安装系统服务
-echo -e "${YELLOW}[步骤 3/5] 安装系统服务...${NC}"
-read -p "是否安装系统服务？(y/n): " RUN_SETUP_SERVICE
-if [ "$RUN_SETUP_SERVICE" = "y" ] || [ "$RUN_SETUP_SERVICE" = "Y" ]; then
-    bash ${SCRIPT_DIR}/setup-service.sh
-else
-    echo "跳过系统服务安装"
-fi
+# 步骤3: 安装系统服务 - 首次部署时需要，后续可跳过
+# echo -e "${YELLOW}[步骤 3/5] 安装系统服务...${NC}"
+# read -p "是否安装系统服务？(y/n): " RUN_SETUP_SERVICE
+# if [ "$RUN_SETUP_SERVICE" = "y" ] || [ "$RUN_SETUP_SERVICE" = "Y" ]; then
+#     bash ${SCRIPT_DIR}/setup-service.sh
+# else
+#     echo "跳过系统服务安装"
+# fi
 
-# 步骤4: 部署项目
+# 步骤4: 部署项目（主要步骤，通常需要执行）
 echo -e "${YELLOW}[步骤 4/5] 部署项目...${NC}"
-read -p "是否部署项目？(y/n): " RUN_DEPLOY
-if [ "$RUN_DEPLOY" = "y" ] || [ "$RUN_DEPLOY" = "Y" ]; then
+# read -p "是否部署项目？(y/n): " RUN_DEPLOY
+# if [ "$RUN_DEPLOY" = "y" ] || [ "$RUN_DEPLOY" = "Y" ]; then
     bash ${SCRIPT_DIR}/deploy.sh
-else
-    echo "跳过项目部署"
-fi
+# else
+#     echo "跳过项目部署"
+# fi
 
-# 步骤5: 启动服务
+# 步骤5: 启动服务（主要步骤，通常需要执行）
 echo -e "${YELLOW}[步骤 5/5] 启动服务...${NC}"
-read -p "是否启动后端服务？(y/n): " START_SERVICE
-if [ "$START_SERVICE" = "y" ] || [ "$START_SERVICE" = "Y" ]; then
-    systemctl start bjzxjj-backend
-    systemctl status bjzxjj-backend
-fi
+# read -p "是否启动后端服务？(y/n): " START_SERVICE
+# if [ "$START_SERVICE" = "y" ] || [ "$START_SERVICE" = "Y" ]; then
+    systemctl start bjzxjj-backend 2>/dev/null || echo "后端服务未安装或已启动"
+    systemctl status bjzxjj-backend 2>/dev/null || echo "无法查看服务状态"
+# fi
 
 echo -e "${GREEN}=========================================="
 echo "部署流程完成！"

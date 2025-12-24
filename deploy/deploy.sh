@@ -136,19 +136,19 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
-  # Redis配置（生产环境）
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: ${REDIS_PASSWORD}
-      database: 0
-      timeout: 3000
-      lettuce:
-        pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 0
+  # Redis配置（生产环境）- 暂未使用，已注释
+  # data:
+  #   redis:
+  #     host: localhost
+  #     port: 6379
+  #     password: ${REDIS_PASSWORD}
+  #     database: 0
+  #     timeout: 3000
+  #     lettuce:
+  #       pool:
+  #         max-active: 20
+  #         max-idle: 10
+  #         min-idle: 0
 
   # 文件上传配置
   servlet:

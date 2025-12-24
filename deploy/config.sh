@@ -21,8 +21,8 @@ DB_PASSWORD=""          # 数据库密码（必填）
 # JWT密钥（生产环境建议使用复杂的随机字符串）
 JWT_SECRET="bjzxjj-website-jwt-secret-key-2024-prod-$(date +%s)"
 
-# Redis配置（如果使用Redis）
-REDIS_PASSWORD=""       # Redis密码（可选，如果Redis没有设置密码则留空）
+# Redis配置（如果使用Redis）- 暂未使用，已注释
+# REDIS_PASSWORD=""       # Redis密码（可选，如果Redis没有设置密码则留空）
 
 # 后端服务配置
 BACKEND_PORT="8080"     # 后端服务端口
@@ -53,7 +53,7 @@ export DB_NAME
 export DB_USER
 export DB_PASSWORD
 export JWT_SECRET
-export REDIS_PASSWORD
+# export REDIS_PASSWORD  # Redis暂未使用
 export BACKEND_PORT
 export JVM_XMS
 export JVM_XMX
