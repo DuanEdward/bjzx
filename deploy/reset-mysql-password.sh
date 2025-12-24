@@ -9,7 +9,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 
-NEW_PASSWORD="root123456"
+NEW_PASSWORD="Root@123456"
 
 echo "=========================================="
 echo "重置MySQL root密码..."
