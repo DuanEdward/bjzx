@@ -18,6 +18,40 @@ if [ -z "$DB_PASSWORD" ] || [ -z "$MYSQL_ROOT_PASSWORD" ]; then
     exit 1
 fi
 
+# 检查MySQL服务状态
+echo "检查MySQL服务状态..."
+if ! systemctl is-active --quiet mysqld 2>/dev/null; then
+    echo "MySQL服务未运行，尝试启动..."
+    systemctl start mysqld
+    
+    # 等待MySQL启动
+    echo "等待MySQL服务启动..."
+    sleep 5
+    
+    # 再次检查服务状态
+    if ! systemctl is-active --quiet mysqld 2>/dev/null; then
+        echo "错误: MySQL服务启动失败，请检查服务状态："
+        echo "  systemctl status mysqld"
+        echo "  journalctl -u mysqld -n 50"
+        exit 1
+    fi
+    echo "MySQL服务已启动"
+else
+    echo "MySQL服务正在运行"
+fi
+
+# 测试MySQL连接
+echo "测试MySQL连接..."
+if ! mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT 1;" >/dev/null 2>&1; then
+    echo "错误: 无法连接到MySQL服务器"
+    echo "请检查："
+    echo "  1. MySQL服务是否正常运行: systemctl status mysqld"
+    echo "  2. root密码是否正确: ${MYSQL_ROOT_PASSWORD}"
+    echo "  3. MySQL socket文件是否存在: ls -l /var/lib/mysql/mysql.sock"
+    exit 1
+fi
+echo "MySQL连接成功"
+
 # 创建数据库
 echo "创建数据库..."
 mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" <<EOF
