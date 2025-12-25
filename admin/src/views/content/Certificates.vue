@@ -479,7 +479,7 @@ const handleView = async (row: Certificate) => {
 
     const result = await response.json()
     if (result.code === 200) {
-      currentCertificate.value = result.data
+      currentCertificate.value = result.data as Certificate
       detailDialogVisible.value = true
     } else {
       ElMessage.error(result.message || '查询失败')
