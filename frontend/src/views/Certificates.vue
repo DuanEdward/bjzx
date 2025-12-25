@@ -197,7 +197,6 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElForm } from 'element-plus'
 import { User, CreditCard, Document, Search, Refresh } from '@element-plus/icons-vue'
 import request from '@/api/index'
-import type { ApiResponse } from '@/types'
 
 // 表单引用
 const queryFormRef = ref<InstanceType<typeof ElForm>>()

@@ -122,7 +122,7 @@ const initData = async () => {
   try {
     // 获取Banner数据
     const bannerRes = await getBanners()
-    banners.value = bannerRes.data || []
+    banners.value = (bannerRes.data as unknown as Banner[]) || []
 
     // 获取最新新闻
     const newsRes = await getLatestNews({ pageSize: 5 })

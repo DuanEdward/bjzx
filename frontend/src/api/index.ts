@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
+import axios, { type AxiosResponse } from 'axios'
 import type { ApiResponse } from '@/types'
 
 const request = axios.create({
@@ -22,7 +22,7 @@ request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     const { data } = response
     if (data.code === 200) {
-      return data
+      return data as any
     } else {
       console.error('API Error:', data.message)
       return Promise.reject(new Error(data.message || '请求失败'))
