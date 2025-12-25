@@ -293,9 +293,9 @@ const fetchCertificateDetail = async () => {
     } else {
       ElMessage.error(result.message || '获取证件详情失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取证件详情失败:', error)
-    ElMessage.error('获取证件详情失败: ' + error.message)
+    ElMessage.error('获取证件详情失败: ' + (error?.message || '未知错误'))
   }
 }
 
@@ -342,8 +342,8 @@ const handleSave = async () => {
     } else {
       ElMessage.error(result.message || (isEdit.value ? '更新失败' : '创建失败'))
     }
-  } catch (error) {
-    if (error.message) {
+  } catch (error: any) {
+    if (error?.message) {
       console.error('保存失败:', error)
       ElMessage.error('保存失败: ' + error.message)
     }

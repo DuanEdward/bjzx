@@ -149,7 +149,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   // 获取token
   const token = localStorage.getItem('token')
 

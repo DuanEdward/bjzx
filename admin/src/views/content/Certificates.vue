@@ -329,6 +329,33 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Upload, Download, UploadFilled } from '@element-plus/icons-vue'
+import type { UploadFile, UploadFiles } from 'element-plus'
+
+// 类型定义
+interface Certificate {
+  id: number
+  name: string
+  type: string
+  number: string
+  holder: string
+  holderContact?: string
+  issuingAuthority: string
+  issueDate: string
+  validFrom: string
+  validUntil: string
+  status: number
+  isPublic: boolean
+  attachmentPath?: string
+  description?: string
+  createTime: string
+  updateTime: string
+}
+
+interface ImportResult {
+  successCount: number
+  failCount: number
+  errorMessages?: string[]
+}
 
 const router = useRouter()
 
@@ -351,19 +378,19 @@ const pagination = reactive({
 // 数据
 const loading = ref(false)
 const total = ref(0)
-const certificateList = ref([])
-const selectedCertificates = ref([])
+const certificateList = ref<Certificate[]>([])
+const selectedCertificates = ref<Certificate[]>([])
 
 // 详情对话框
 const detailDialogVisible = ref(false)
-const currentCertificate = ref(null)
+const currentCertificate = ref<Certificate | null>(null)
 
 // 批量导入对话框
 const importDialogVisible = ref(false)
 const uploadRef = ref()
-const fileList = ref([])
+const fileList = ref<UploadFiles>([])
 const importing = ref(false)
-const importResult = ref(null)
+const importResult = ref<ImportResult | null>(null)
 
 // 搜索
 const handleSearch = () => {
@@ -418,9 +445,9 @@ const fetchCertificateList = async () => {
     } else {
       ElMessage.error(result.message || '查询失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('查询失败:', error)
-    ElMessage.error('查询失败: ' + error.message)
+    ElMessage.error('查询失败: ' + (error?.message || '未知错误'))
   } finally {
     loading.value = false
   }
@@ -432,12 +459,12 @@ const handleCreate = () => {
 }
 
 // 编辑
-const handleEdit = (row) => {
+const handleEdit = (row: Certificate) => {
   router.push(`/content/certificates/${row.id}/edit`)
 }
 
 // 查看
-const handleView = async (row) => {
+const handleView = async (row: Certificate) => {
   try {
     const response = await fetch(`http://localhost:8080/api/certificate/${row.id}`, {
       headers: {
@@ -457,14 +484,14 @@ const handleView = async (row) => {
     } else {
       ElMessage.error(result.message || '查询失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('查询详情失败:', error)
-    ElMessage.error('查询详情失败: ' + error.message)
+    ElMessage.error('查询详情失败: ' + (error?.message || '未知错误'))
   }
 }
 
 // 删除
-const handleDelete = (row) => {
+const handleDelete = (row: Certificate) => {
   ElMessageBox.confirm(
     `确定要删除证件"${row.name}"吗？`,
     '提示',
@@ -494,15 +521,15 @@ const handleDelete = (row) => {
       } else {
         ElMessage.error(result.message || '删除失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败: ' + error.message)
+      ElMessage.error('删除失败: ' + (error?.message || '未知错误'))
     }
   })
 }
 
 // 批量选择
-const handleSelectionChange = (selection) => {
+const handleSelectionChange = (selection: Certificate[]) => {
   selectedCertificates.value = selection
 }
 
@@ -540,22 +567,22 @@ const handleBatchDelete = () => {
       } else {
         ElMessage.error(result.message || '批量删除失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('批量删除失败:', error)
-      ElMessage.error('批量删除失败: ' + error.message)
+      ElMessage.error('批量删除失败: ' + (error?.message || '未知错误'))
     }
   })
 }
 
 // 分页大小改变
-const handleSizeChange = (size) => {
+const handleSizeChange = (size: number) => {
   pagination.size = size
   pagination.current = 1
   fetchCertificateList()
 }
 
 // 当前页改变
-const handleCurrentChange = (current) => {
+const handleCurrentChange = (current: number) => {
   pagination.current = current
   fetchCertificateList()
 }
@@ -567,25 +594,25 @@ const handleCloseDetail = () => {
 }
 
 // 格式化日期
-const formatDate = (date) => {
+const formatDate = (date: string | null | undefined) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('zh-CN')
 }
 
 // 格式化时间
-const formatDateTime = (date) => {
+const formatDateTime = (date: string | null | undefined) => {
   if (!date) return ''
   return new Date(date).toLocaleString('zh-CN')
 }
 
 // 格式化日期范围
-const formatDateRange = (startDate, endDate) => {
+const formatDateRange = (startDate: string | null | undefined, endDate: string | null | undefined) => {
   if (!startDate || !endDate) return ''
   return `${formatDate(startDate)} 至 ${formatDate(endDate)}`
 }
 
 // 获取状态类型
-const getStatusType = (status) => {
+const getStatusType = (status: number) => {
   switch (status) {
     case 0: return 'danger'
     case 1: return 'success'
@@ -595,7 +622,7 @@ const getStatusType = (status) => {
 }
 
 // 获取状态文本
-const getStatusText = (status) => {
+const getStatusText = (status: number) => {
   switch (status) {
     case 0: return '已过期'
     case 1: return '有效'
@@ -624,7 +651,7 @@ const handleBatchImport = () => {
 }
 
 // 文件选择变化
-const handleFileChange = (file) => {
+const handleFileChange = (file: UploadFile) => {
   fileList.value = [file]
 }
 
@@ -691,10 +718,10 @@ const handleConfirmImport = async () => {
     } else {
       ElMessage.error(result.message || '导入失败')
     }
-  } catch (error) {
-    console.error('导入失败:', error)
-    ElMessage.error('导入失败: ' + error.message)
-  } finally {
+    } catch (error: any) {
+      console.error('导入失败:', error)
+      ElMessage.error('导入失败: ' + (error?.message || '未知错误'))
+    } finally {
     importing.value = false
   }
 }

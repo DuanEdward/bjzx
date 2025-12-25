@@ -210,13 +210,13 @@ const activityChartOption = ref({
 
 // 获取状态类型
 const getStatusType = (status: number) => {
-  const types = { 0: 'warning', 1: 'success', 2: 'danger' }
+  const types: Record<number, string> = { 0: 'warning', 1: 'success', 2: 'danger' }
   return types[status] || 'info'
 }
 
 // 获取状态文本
 const getStatusText = (status: number) => {
-  const texts = { 0: '待审核', 1: '已通过', 2: '已拒绝' }
+  const texts: Record<number, string> = { 0: '待审核', 1: '已通过', 2: '已拒绝' }
   return texts[status] || '未知'
 }
 
