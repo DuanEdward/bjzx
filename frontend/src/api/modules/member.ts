@@ -1,5 +1,5 @@
 import request from '../index'
-import type { Member, ApiResponse } from '@/types'
+import type { ApiResponse } from '@/types'
 
 // 申请会员
 export function applyMember(data: {

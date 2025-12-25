@@ -122,11 +122,11 @@ const initData = async () => {
   try {
     // 获取Banner数据
     const bannerRes = await getBanners()
-    banners.value = bannerRes.data || []
+    banners.value = (bannerRes.data as Banner[]) || []
 
     // 获取最新新闻
     const newsRes = await getLatestNews({ pageSize: 5 })
-    newsList.value = newsRes.data?.list || []
+    newsList.value = (newsRes.data as any)?.list || []
   } catch (error) {
     console.error('获取首页数据失败:', error)
   }

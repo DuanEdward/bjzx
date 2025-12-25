@@ -1,5 +1,4 @@
 import axios from 'axios'
-import type { ApiResponse } from '@/types'
 
 const request = axios.create({
   baseURL: '/api',

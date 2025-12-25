@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View } from '@element-plus/icons-vue'
 import { getNewsList } from '@/api/modules/news'
-import type { News, PaginationParams } from '@/types'
+import type { News, PaginationParams, PaginationResponse } from '@/types'
 
 const router = useRouter()
 
@@ -75,8 +75,9 @@ const fetchIndustryList = async () => {
       category: 'industry' // 只获取行业资讯分类
     }
     const response = await getNewsList(params)
-    industryList.value = response.data?.list || []
-    total.value = response.data?.total || 0
+    const pageData = response.data as PaginationResponse<News>
+    industryList.value = pageData?.list || []
+    total.value = pageData?.total || 0
   } catch (error) {
     console.error('获取行业动态列表失败:', error)
     ElMessage.error('获取行业动态列表失败')

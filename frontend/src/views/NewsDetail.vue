@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { ArrowLeft, Calendar, User, View } from '@element-plus/icons-vue'
 import { getNewsDetail, incrementNewsViews } from '@/api/modules/news'
 import type { News } from '@/types'
@@ -72,7 +73,7 @@ const fetchNewsDetail = async () => {
   try {
     loading.value = true
     const response = await getNewsDetail(newsId)
-    newsDetail.value = response.data
+    newsDetail.value = response.data as News
 
     // 增加浏览量
     incrementNewsViews(newsId).catch(console.error)

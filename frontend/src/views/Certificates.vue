@@ -197,6 +197,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElForm } from 'element-plus'
 import { User, CreditCard, Document, Search, Refresh } from '@element-plus/icons-vue'
 import request from '@/api/index'
+import type { ApiResponse } from '@/types'
 
 // 表单引用
 const queryFormRef = ref<InstanceType<typeof ElForm>>()
@@ -209,7 +210,7 @@ const queryForm = reactive({
 })
 
 // 表单验证规则
-const validateIdCard = (rule: any, value: string, callback: Function) => {
+const validateIdCard = (_rule: any, value: string, callback: Function) => {
   if (value && value.length !== 18) {
     callback(new Error('身份证号必须为18位'))
   } else if (value && !/^\d{17}[\dXx]$/.test(value)) {
@@ -219,7 +220,7 @@ const validateIdCard = (rule: any, value: string, callback: Function) => {
   }
 }
 
-const validateAtLeastOne = (rule: any, value: string, callback: Function) => {
+const validateAtLeastOne = (_rule: any, _value: string, callback: Function) => {
   if (!queryForm.name && !queryForm.idCard && !queryForm.certificateNumber) {
     callback(new Error('至少输入一项查询条件'))
   } else {
@@ -275,7 +276,7 @@ const handleQuery = async () => {
       params.number = queryForm.certificateNumber
     }
 
-    const response = await request.get('/certificate/public', { params })
+    const response = await request.get<ApiResponse<any[]>>('/certificate/public', { params })
     
     if (response.code === 200) {
       certificateList.value = response.data || []

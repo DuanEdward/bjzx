@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { Document, CircleCheck, Search, InfoFilled, WarningFilled, SuccessFilled } from '@element-plus/icons-vue'
+import { CircleCheck, Search } from '@element-plus/icons-vue'
 
 // 证书类型
 const certificateTypes = [

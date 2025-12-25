@@ -60,9 +60,10 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { View } from '@element-plus/icons-vue'
 import { getNewsList } from '@/api/modules/news'
-import type { News, PaginationParams } from '@/types'
+import type { News, PaginationParams, PaginationResponse } from '@/types'
 
 const router = useRouter()
 
@@ -86,8 +87,9 @@ const fetchNewsList = async () => {
       category: activeCategory.value === 'all' ? undefined : activeCategory.value
     }
     const response = await getNewsList(params)
-    newsList.value = response.data?.list || []
-    total.value = response.data?.total || 0
+    const pageData = response.data as PaginationResponse<News>
+    newsList.value = pageData?.list || []
+    total.value = pageData?.total || 0
   } catch (error) {
     console.error('获取新闻列表失败:', error)
     ElMessage.error('获取新闻列表失败')

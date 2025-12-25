@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View } from '@element-plus/icons-vue'
 import { getNewsList } from '@/api/modules/news'
-import type { News, PaginationParams } from '@/types'
+import type { News, PaginationParams, PaginationResponse } from '@/types'
 
 const router = useRouter()
 
@@ -75,8 +75,9 @@ const fetchNoticeList = async () => {
       category: 'notice' // 只获取通知公告分类
     }
     const response = await getNewsList(params)
-    noticeList.value = response.data?.list || []
-    total.value = response.data?.total || 0
+    const pageData = response.data as PaginationResponse<News>
+    noticeList.value = pageData?.list || []
+    total.value = pageData?.total || 0
   } catch (error) {
     console.error('获取通知公告列表失败:', error)
     ElMessage.error('获取通知公告列表失败')
