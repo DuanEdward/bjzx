@@ -77,10 +77,24 @@ fi
 echo "Node.js版本: $(node -v)"
 echo "npm版本: $(npm -v)"
 
-# 安装依赖（如果需要）
+# 检查并更新 vue-tsc 版本（修复兼容性问题）
+if [ -f "package.json" ]; then
+    echo "检查 vue-tsc 版本..."
+    VUE_TSC_VERSION=$(grep -o '"vue-tsc": "[^"]*"' package.json | cut -d'"' -f4)
+    if [[ "$VUE_TSC_VERSION" == "^1.8.25" ]] || [[ "$VUE_TSC_VERSION" == "1.8.25" ]]; then
+        echo "更新 vue-tsc 到 2.0.0 以修复兼容性问题..."
+        sed -i 's/"vue-tsc": "\^1.8.25"/"vue-tsc": "^2.0.0"/' package.json
+        sed -i 's/"vue-tsc": "1.8.25"/"vue-tsc": "^2.0.0"/' package.json
+    fi
+fi
+
+# 安装或更新依赖
 if [ ! -d "node_modules" ]; then
     echo "安装前端依赖..."
     npm install
+else
+    echo "更新前端依赖（特别是 vue-tsc）..."
+    npm install vue-tsc@^2.0.0 --save-dev
 fi
 
 # 构建前端
@@ -100,10 +114,24 @@ echo -e "${GREEN}前端构建完成${NC}"
 echo -e "${YELLOW}[3/5] 构建管理后台...${NC}"
 cd ${PROJECT_SOURCE_DIR}/admin
 
-# 安装依赖（如果需要）
+# 检查并更新 vue-tsc 版本（修复兼容性问题）
+if [ -f "package.json" ]; then
+    echo "检查 vue-tsc 版本..."
+    VUE_TSC_VERSION=$(grep -o '"vue-tsc": "[^"]*"' package.json | cut -d'"' -f4)
+    if [[ "$VUE_TSC_VERSION" == "^1.8.25" ]] || [[ "$VUE_TSC_VERSION" == "1.8.25" ]]; then
+        echo "更新 vue-tsc 到 2.0.0 以修复兼容性问题..."
+        sed -i 's/"vue-tsc": "\^1.8.25"/"vue-tsc": "^2.0.0"/' package.json
+        sed -i 's/"vue-tsc": "1.8.25"/"vue-tsc": "^2.0.0"/' package.json
+    fi
+fi
+
+# 安装或更新依赖
 if [ ! -d "node_modules" ]; then
     echo "安装管理后台依赖..."
     npm install
+else
+    echo "更新管理后台依赖（特别是 vue-tsc）..."
+    npm install vue-tsc@^2.0.0 --save-dev
 fi
 
 # 构建管理后台
