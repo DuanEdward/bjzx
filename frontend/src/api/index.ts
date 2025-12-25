@@ -1,4 +1,5 @@
-import axios from 'axios'
+import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
+import type { ApiResponse } from '@/types'
 
 const request = axios.create({
   baseURL: '/api',
@@ -18,7 +19,7 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse<ApiResponse>) => {
     const { data } = response
     if (data.code === 200) {
       return data
@@ -32,5 +33,15 @@ request.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// 类型声明：让 TypeScript 知道拦截器返回的是 ApiResponse 而不是 AxiosResponse
+declare module 'axios' {
+  export interface AxiosInstance {
+    get<T = any>(url: string, config?: any): Promise<ApiResponse<T>>
+    post<T = any>(url: string, data?: any, config?: any): Promise<ApiResponse<T>>
+    put<T = any>(url: string, data?: any, config?: any): Promise<ApiResponse<T>>
+    delete<T = any>(url: string, config?: any): Promise<ApiResponse<T>>
+  }
+}
 
 export default request

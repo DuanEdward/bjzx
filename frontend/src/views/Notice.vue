@@ -75,7 +75,7 @@ const fetchNoticeList = async () => {
       category: 'notice' // 只获取通知公告分类
     }
     const response = await getNewsList(params)
-    const pageData = response.data as PaginationResponse<News>
+    const pageData = response.data as unknown as PaginationResponse<News>
     noticeList.value = pageData?.list || []
     total.value = pageData?.total || 0
   } catch (error) {

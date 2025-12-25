@@ -75,7 +75,7 @@ const fetchIndustryList = async () => {
       category: 'industry' // 只获取行业资讯分类
     }
     const response = await getNewsList(params)
-    const pageData = response.data as PaginationResponse<News>
+    const pageData = response.data as unknown as PaginationResponse<News>
     industryList.value = pageData?.list || []
     total.value = pageData?.total || 0
   } catch (error) {

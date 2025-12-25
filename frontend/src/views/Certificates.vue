@@ -276,7 +276,7 @@ const handleQuery = async () => {
       params.number = queryForm.certificateNumber
     }
 
-    const response = await request.get<ApiResponse<any[]>>('/certificate/public', { params })
+    const response = await request.get<any[]>('/certificate/public', { params })
     
     if (response.code === 200) {
       certificateList.value = response.data || []

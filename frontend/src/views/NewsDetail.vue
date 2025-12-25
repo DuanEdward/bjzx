@@ -73,7 +73,7 @@ const fetchNewsDetail = async () => {
   try {
     loading.value = true
     const response = await getNewsDetail(newsId)
-    newsDetail.value = response.data as News
+    newsDetail.value = response.data as unknown as News
 
     // 增加浏览量
     incrementNewsViews(newsId).catch(console.error)

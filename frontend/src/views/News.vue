@@ -87,7 +87,7 @@ const fetchNewsList = async () => {
       category: activeCategory.value === 'all' ? undefined : activeCategory.value
     }
     const response = await getNewsList(params)
-    const pageData = response.data as PaginationResponse<News>
+    const pageData = response.data as unknown as PaginationResponse<News>
     newsList.value = pageData?.list || []
     total.value = pageData?.total || 0
   } catch (error) {
