@@ -23,14 +23,9 @@ export default defineConfig({
   build: {
     // 优化构建性能，减少内存使用
     chunkSizeWarningLimit: 1000,
-    // 减少并发构建以提高稳定性
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    },
+    // 使用 esbuild 压缩（默认，更快且不需要额外依赖）
+    // 如果需要 terser，需要先安装: npm install -D terser
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         // 更细粒度的代码分割，减少单次处理的内存压力
