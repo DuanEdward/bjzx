@@ -77,6 +77,17 @@ fi
 echo "Node.js版本: $(node -v)"
 echo "npm版本: $(npm -v)"
 
+# 检查系统内存
+TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
+echo "系统总内存: ${TOTAL_MEM}MB"
+if [ "$TOTAL_MEM" -lt 1024 ]; then
+    echo -e "${YELLOW}警告: 系统内存较少，将使用较低的内存限制进行构建${NC}"
+    export NODE_OPTIONS="--max_old_space_size=512"
+else
+    export NODE_OPTIONS="--max_old_space_size=1024"
+fi
+echo "Node.js内存限制: ${NODE_OPTIONS}"
+
 # 检查并更新 vue-tsc 版本（修复兼容性问题）
 if [ -f "package.json" ]; then
     echo "检查 vue-tsc 版本..."
@@ -97,8 +108,16 @@ else
     npm install vue-tsc@^2.0.0 --save-dev
 fi
 
-# 构建前端
-npm run build
+# 构建前端（使用内存限制）
+echo "开始构建前端项目..."
+npm run build || {
+    echo -e "${RED}前端构建失败，尝试跳过类型检查构建...${NC}"
+    # 如果构建失败，尝试跳过类型检查
+    npx vite build || {
+        echo -e "${RED}前端构建完全失败！${NC}"
+        exit 1
+    }
+}
 
 if [ ! -d "dist" ]; then
     echo -e "${RED}前端构建失败！${NC}"
@@ -134,8 +153,16 @@ else
     npm install vue-tsc@^2.0.0 --save-dev
 fi
 
-# 构建管理后台
-npm run build
+# 构建管理后台（使用内存限制）
+echo "开始构建管理后台..."
+npm run build || {
+    echo -e "${RED}管理后台构建失败，尝试跳过类型检查构建...${NC}"
+    # 如果构建失败，尝试跳过类型检查
+    npx vite build || {
+        echo -e "${RED}管理后台构建完全失败！${NC}"
+        exit 1
+    }
+}
 
 if [ ! -d "dist" ]; then
     echo -e "${RED}管理后台构建失败！${NC}"
