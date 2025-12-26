@@ -83,8 +83,10 @@ echo "系统总内存: ${TOTAL_MEM}MB"
 if [ "$TOTAL_MEM" -lt 1024 ]; then
     echo -e "${YELLOW}警告: 系统内存较少，将使用较低的内存限制进行构建${NC}"
     export NODE_OPTIONS="--max_old_space_size=512"
-else
+elif [ "$TOTAL_MEM" -lt 2048 ]; then
     export NODE_OPTIONS="--max_old_space_size=1024"
+else
+    export NODE_OPTIONS="--max_old_space_size=2048"
 fi
 echo "Node.js内存限制: ${NODE_OPTIONS}"
 
@@ -153,15 +155,35 @@ else
     npm install vue-tsc@^2.0.0 --save-dev
 fi
 
-# 构建管理后台（使用内存限制）
+# 构建管理后台（使用内存限制和优化策略）
 echo "开始构建管理后台..."
-npm run build || {
-    echo -e "${RED}管理后台构建失败，尝试跳过类型检查构建...${NC}"
-    # 如果构建失败，尝试跳过类型检查
-    npx vite build || {
-        echo -e "${RED}管理后台构建完全失败！${NC}"
+echo -e "${YELLOW}注意: 管理后台包含 echarts，构建可能需要更多内存${NC}"
+
+# 尝试完整构建（包含类型检查）
+npm run build 2>&1 | tee /tmp/admin-build.log || {
+    BUILD_ERROR=$(tail -20 /tmp/admin-build.log)
+    if echo "$BUILD_ERROR" | grep -q "Killed"; then
+        echo -e "${RED}管理后台构建因内存不足被终止，尝试优化构建策略...${NC}"
+        echo -e "${YELLOW}策略1: 跳过类型检查，直接构建...${NC}"
+        # 跳过类型检查，直接构建
+        npx vite build 2>&1 | tee /tmp/admin-build.log || {
+            if tail -20 /tmp/admin-build.log | grep -q "Killed"; then
+                echo -e "${RED}策略1失败，尝试策略2: 使用更低的内存配置...${NC}"
+                # 进一步降低内存使用
+                export NODE_OPTIONS="--max_old_space_size=512"
+                npx vite build --mode production || {
+                    echo -e "${RED}管理后台构建完全失败！${NC}"
+                    echo -e "${YELLOW}建议: 在本地构建管理后台后上传，或增加服务器内存${NC}"
+                    exit 1
+                }
+            else
+                echo -e "${GREEN}策略1成功：跳过类型检查构建完成${NC}"
+            fi
+        }
+    else
+        echo -e "${RED}管理后台构建失败（非内存问题）${NC}"
         exit 1
-    }
+    fi
 }
 
 if [ ! -d "dist" ]; then

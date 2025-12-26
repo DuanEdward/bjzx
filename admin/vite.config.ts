@@ -23,12 +23,38 @@ export default defineConfig({
   build: {
     // 优化构建性能，减少内存使用
     chunkSizeWarningLimit: 1000,
+    // 减少并发构建以提高稳定性
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'element-plus': ['element-plus'],
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'echarts': ['echarts', 'vue-echarts']
+        // 更细粒度的代码分割，减少单次处理的内存压力
+        manualChunks: (id) => {
+          // echarts 单独打包，避免与其他模块一起处理
+          if (id.includes('echarts') || id.includes('zrender')) {
+            return 'echarts-vendor'
+          }
+          // element-plus 单独打包
+          if (id.includes('element-plus')) {
+            return 'element-plus-vendor'
+          }
+          // Vue 核心库
+          if (id.includes('vue') && !id.includes('node_modules')) {
+            return 'vue-core'
+          }
+          // Vue 相关库
+          if (id.includes('vue-router') || id.includes('pinia')) {
+            return 'vue-vendor'
+          }
+          // node_modules 中的其他大包
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
         }
       }
     }
