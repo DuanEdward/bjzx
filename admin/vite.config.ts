@@ -9,6 +9,14 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // 使用 sass-embedded 而不是 legacy sass
+        api: 'modern-compiler'
+      }
+    }
+  },
   server: {
     port: 3001,
     proxy: {
