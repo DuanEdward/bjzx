@@ -159,13 +159,24 @@ fi
 echo "开始构建管理后台..."
 echo -e "${YELLOW}注意: 管理后台包含 echarts，构建可能需要更多内存${NC}"
 
-# 清理旧的构建日志
+# 清理旧的构建产物和日志
+rm -rf dist
 rm -f /tmp/admin-build.log
 
 # 尝试完整构建（包含类型检查）
+BUILD_SUCCESS=false
 if npm run build 2>&1 | tee /tmp/admin-build.log; then
-    echo -e "${GREEN}管理后台构建成功（包含类型检查）${NC}"
-else
+    # 检查构建是否真的成功（dist 目录是否存在且不为空）
+    if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
+        echo -e "${GREEN}管理后台构建成功（包含类型检查）${NC}"
+        BUILD_SUCCESS=true
+    else
+        echo -e "${YELLOW}构建命令成功但未生成 dist 目录，检查日志...${NC}"
+    fi
+fi
+
+# 如果构建失败，尝试降级策略
+if [ "$BUILD_SUCCESS" = false ]; then
     BUILD_ERROR=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
     echo -e "${YELLOW}完整构建失败，检查错误原因...${NC}"
     
@@ -173,41 +184,44 @@ else
         echo -e "${RED}管理后台构建因内存不足被终止，尝试优化构建策略...${NC}"
         echo -e "${YELLOW}策略1: 跳过类型检查，直接构建...${NC}"
         # 跳过类型检查，直接构建
+        rm -rf dist
         rm -f /tmp/admin-build.log
         if npx vite build 2>&1 | tee /tmp/admin-build.log; then
-            echo -e "${GREEN}策略1成功：跳过类型检查构建完成${NC}"
-        else
+            if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
+                echo -e "${GREEN}策略1成功：跳过类型检查构建完成${NC}"
+                BUILD_SUCCESS=true
+            fi
+        fi
+        
+        if [ "$BUILD_SUCCESS" = false ]; then
             BUILD_ERROR2=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
             if echo "$BUILD_ERROR2" | grep -q "Killed"; then
                 echo -e "${RED}策略1也因内存不足失败，尝试策略2: 使用更低的内存配置...${NC}"
                 # 进一步降低内存使用
                 export NODE_OPTIONS="--max_old_space_size=512"
+                rm -rf dist
                 rm -f /tmp/admin-build.log
                 if npx vite build --mode production 2>&1 | tee /tmp/admin-build.log; then
-                    echo -e "${GREEN}策略2成功：使用低内存配置构建完成${NC}"
-                else
-                    echo -e "${RED}管理后台构建完全失败！${NC}"
-                    echo -e "${YELLOW}最后30行错误日志：${NC}"
-                    tail -30 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
-                    echo -e "${YELLOW}建议: 在本地构建管理后台后上传，或增加服务器内存${NC}"
-                    exit 1
+                    if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
+                        echo -e "${GREEN}策略2成功：使用低内存配置构建完成${NC}"
+                        BUILD_SUCCESS=true
+                    fi
                 fi
-            else
-                echo -e "${RED}策略1失败（非内存问题）${NC}"
-                echo -e "${YELLOW}错误信息：${NC}"
-                echo "$BUILD_ERROR2"
-                exit 1
             fi
         fi
-    else
-        echo -e "${RED}管理后台构建失败（非内存问题）${NC}"
-        echo -e "${YELLOW}错误信息：${NC}"
-        echo "$BUILD_ERROR"
+    fi
+    
+    # 如果所有策略都失败
+    if [ "$BUILD_SUCCESS" = false ]; then
+        echo -e "${RED}管理后台构建完全失败！${NC}"
+        echo -e "${YELLOW}最后50行构建日志：${NC}"
+        tail -50 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
+        echo -e "${YELLOW}建议: 在本地构建管理后台后上传，或增加服务器内存${NC}"
         exit 1
     fi
 fi
 
-# 检查构建产物
+# 最终检查构建产物
 if [ ! -d "dist" ]; then
     echo -e "${RED}管理后台构建失败：未找到 dist 目录${NC}"
     echo -e "${YELLOW}检查构建日志...${NC}"
@@ -221,6 +235,10 @@ fi
 # 检查 dist 目录是否为空
 if [ -z "$(ls -A dist 2>/dev/null)" ]; then
     echo -e "${RED}管理后台构建失败：dist 目录为空${NC}"
+    if [ -f "/tmp/admin-build.log" ]; then
+        echo "最后50行构建日志："
+        tail -50 /tmp/admin-build.log
+    fi
     exit 1
 fi
 
@@ -228,7 +246,12 @@ fi
 echo "复制构建文件到部署目录..."
 mkdir -p ${ADMIN_DIR}
 rm -rf ${ADMIN_DIR}/*
-cp -r dist/* ${ADMIN_DIR}/
+cp -r dist/* ${ADMIN_DIR}/ 2>/dev/null || {
+    echo -e "${RED}复制构建文件失败${NC}"
+    echo "dist 目录内容："
+    ls -la dist/ || echo "无法列出 dist 目录"
+    exit 1
+}
 echo -e "${GREEN}管理后台构建完成${NC}"
 
 # 4. 生成并复制配置文件
