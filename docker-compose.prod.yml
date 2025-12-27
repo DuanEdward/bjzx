@@ -1,0 +1,85 @@
+version: '3.8'
+
+# 生产环境配置（使用预构建的镜像，不进行构建）
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: bjzxjj-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Root@123456}
+      MYSQL_DATABASE: ${DB_NAME:-bjzxjj}
+      MYSQL_USER: ${DB_USER:-bjzxjj_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Bjzx@123456}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - bjzxjj-network
+
+  backend:
+    image: bjzxjj-backend:latest
+    container_name: bjzxjj-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME:-bjzxjj}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-bjzxjj_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-Bjzx@123456}
+      JWT_SECRET: ${JWT_SECRET:-bjzxjj-website-jwt-secret-key-2024-prod}
+      JAVA_OPTS: "-Xms${JVM_XMS:-512m} -Xmx${JVM_XMX:-1024m} -XX:+UseG1GC"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - mysql
+    networks:
+      - bjzxjj-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    image: bjzxjj-frontend:latest
+    container_name: bjzxjj-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - bjzxjj-network
+
+  admin:
+    image: bjzxjj-admin:latest
+    container_name: bjzxjj-admin
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - bjzxjj-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: bjzxjj-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - admin
+      - backend
+    networks:
+      - bjzxjj-network
+
+volumes:
+  mysql_data:
+
+networks:
+  bjzxjj-network:
+    driver: bridge
+
