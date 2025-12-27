@@ -177,46 +177,83 @@ fi
 
 # 如果构建失败，尝试降级策略
 if [ "$BUILD_SUCCESS" = false ]; then
-    BUILD_ERROR=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
+    BUILD_ERROR=$(tail -100 /tmp/admin-build.log 2>/dev/null || echo "")
     echo -e "${YELLOW}完整构建失败，检查错误原因...${NC}"
     
-    if echo "$BUILD_ERROR" | grep -q "Killed"; then
+    # 检查是否是内存问题（Killed）或构建在 rendering chunks 阶段中断
+    IS_OOM=false
+    if echo "$BUILD_ERROR" | grep -q "Killed\|OOM\|out of memory"; then
+        IS_OOM=true
+    elif echo "$BUILD_ERROR" | grep -q "rendering chunks" && ! echo "$BUILD_ERROR" | grep -q "built in\|dist/index.html"; then
+        # 构建在 rendering chunks 阶段停止，可能是被静默终止
+        echo -e "${RED}检测到构建在 rendering chunks 阶段被中断（可能是 OOM）${NC}"
+        IS_OOM=true
+    fi
+    
+    if [ "$IS_OOM" = true ]; then
         echo -e "${RED}管理后台构建因内存不足被终止，尝试优化构建策略...${NC}"
         echo -e "${YELLOW}策略1: 跳过类型检查，直接构建...${NC}"
         # 跳过类型检查，直接构建
         rm -rf dist
         rm -f /tmp/admin-build.log
         if npx vite build 2>&1 | tee /tmp/admin-build.log; then
+            # 等待文件系统同步
+            sleep 2
             if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
                 echo -e "${GREEN}策略1成功：跳过类型检查构建完成${NC}"
                 BUILD_SUCCESS=true
+            else
+                echo -e "${YELLOW}策略1: 命令成功但未生成 dist，检查日志...${NC}"
+                # 检查是否再次在 rendering chunks 阶段中断
+                if tail -50 /tmp/admin-build.log 2>/dev/null | grep -q "rendering chunks" && ! tail -50 /tmp/admin-build.log 2>/dev/null | grep -q "built in"; then
+                    echo -e "${RED}策略1也在 rendering chunks 阶段中断${NC}"
+                fi
             fi
         fi
         
         if [ "$BUILD_SUCCESS" = false ]; then
-            BUILD_ERROR2=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
-            if echo "$BUILD_ERROR2" | grep -q "Killed"; then
+            BUILD_ERROR2=$(tail -100 /tmp/admin-build.log 2>/dev/null || echo "")
+            if echo "$BUILD_ERROR2" | grep -q "Killed\|OOM\|out of memory\|rendering chunks"; then
                 echo -e "${RED}策略1也因内存不足失败，尝试策略2: 使用更低的内存配置...${NC}"
                 # 进一步降低内存使用
                 export NODE_OPTIONS="--max_old_space_size=512"
                 rm -rf dist
                 rm -f /tmp/admin-build.log
                 if npx vite build --mode production 2>&1 | tee /tmp/admin-build.log; then
+                    sleep 2
                     if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
                         echo -e "${GREEN}策略2成功：使用低内存配置构建完成${NC}"
                         BUILD_SUCCESS=true
+                    else
+                        echo -e "${RED}策略2: 命令成功但未生成 dist${NC}"
                     fi
                 fi
+            else
+                echo -e "${RED}策略1失败（非内存问题）${NC}"
+                echo "错误信息："
+                echo "$BUILD_ERROR2"
             fi
         fi
+    else
+        echo -e "${RED}构建失败（非内存问题）${NC}"
+        echo "错误信息："
+        echo "$BUILD_ERROR"
     fi
     
     # 如果所有策略都失败
     if [ "$BUILD_SUCCESS" = false ]; then
         echo -e "${RED}管理后台构建完全失败！${NC}"
-        echo -e "${YELLOW}最后50行构建日志：${NC}"
-        tail -50 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
-        echo -e "${YELLOW}建议: 在本地构建管理后台后上传，或增加服务器内存${NC}"
+        echo -e "${YELLOW}完整构建日志（最后100行）：${NC}"
+        tail -100 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
+        echo ""
+        echo -e "${YELLOW}诊断信息：${NC}"
+        echo "检查系统 OOM 日志: dmesg | grep -i 'killed\|oom' | tail -10"
+        echo "检查可用内存: free -h"
+        echo ""
+        echo -e "${YELLOW}建议:${NC}"
+        echo "1. 在本地构建管理后台后上传（使用 build-local.sh 或 build-local.bat）"
+        echo "2. 增加服务器内存"
+        echo "3. 使用本地构建脚本: ./build-local.sh"
         exit 1
     fi
 fi
