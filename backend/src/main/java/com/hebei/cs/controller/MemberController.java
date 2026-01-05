@@ -76,6 +76,105 @@ public class MemberController {
     }
 
     /**
+     * 获取会员详情
+     */
+    @GetMapping("/{id}")
+    public Result<Member> getMemberDetail(@PathVariable Long id) {
+        Member member = memberService.getById(id);
+        if (member == null) {
+            return Result.notFound();
+        }
+        return Result.success(member);
+    }
+
+    /**
+     * 更新会员信息（后台管理）
+     */
+    @PutMapping("/{id}")
+    public Result<Member> updateMember(@PathVariable Long id, @RequestBody Member member) {
+        Member existing = memberService.getById(id);
+        if (existing == null) {
+            return Result.notFound();
+        }
+        member.setId(id);
+        boolean updated = memberService.updateById(member);
+        if (!updated) {
+            return Result.error("更新会员失败");
+        }
+        return Result.success("更新成功", member);
+    }
+
+    /**
+     * 删除会员（后台管理，逻辑删除）
+     */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteMember(@PathVariable Long id) {
+        boolean removed = memberService.removeById(id);
+        return removed ? Result.success("删除成功") : Result.error("删除失败");
+    }
+
+    /**
+     * 审核会员申请（后台管理）
+     */
+    @PostMapping("/{id}/review")
+    public Result<?> reviewMember(
+            @PathVariable Long id,
+            @RequestBody MemberReviewRequest request) {
+        try {
+            // TODO: 从JWT token中获取当前用户ID，暂时使用null
+            Long reviewedBy = request.getReviewedBy();
+            boolean success = memberService.reviewMember(
+                    id,
+                    request.getStatus(),
+                    request.getReviewRemark(),
+                    reviewedBy
+            );
+            if (success) {
+                return Result.success("审核成功");
+            } else {
+                return Result.error("审核失败");
+            }
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            return Result.error("审核失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 会员审核请求对象
+     */
+    public static class MemberReviewRequest {
+        private Integer status;  // 1-通过，2-拒绝
+        private String reviewRemark;
+        private Long reviewedBy;  // 审核人ID（可选）
+
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(Integer status) {
+            this.status = status;
+        }
+
+        public String getReviewRemark() {
+            return reviewRemark;
+        }
+
+        public void setReviewRemark(String reviewRemark) {
+            this.reviewRemark = reviewRemark;
+        }
+
+        public Long getReviewedBy() {
+            return reviewedBy;
+        }
+
+        public void setReviewedBy(Long reviewedBy) {
+            this.reviewedBy = reviewedBy;
+        }
+    }
+
+    /**
      * 会员申请请求对象
      */
     public static class MemberApplicationRequest {

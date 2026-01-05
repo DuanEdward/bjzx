@@ -119,6 +119,48 @@ public class ActivityController {
     }
 
     /**
+     * 创建活动（后台管理）
+     */
+    @PostMapping
+    public Result<Activity> createActivity(@RequestBody Activity activity) {
+        // 新建活动默认参与人数为0
+        if (activity.getCurrentParticipants() == null) {
+            activity.setCurrentParticipants(0);
+        }
+        boolean saved = activityService.save(activity);
+        if (!saved) {
+            return Result.error("创建活动失败");
+        }
+        return Result.success("创建成功", activity);
+    }
+
+    /**
+     * 更新活动（后台管理）
+     */
+    @PutMapping("/{id}")
+    public Result<Activity> updateActivity(@PathVariable Long id, @RequestBody Activity activity) {
+        Activity existing = activityService.getById(id);
+        if (existing == null) {
+            return Result.notFound();
+        }
+        activity.setId(id);
+        boolean updated = activityService.updateById(activity);
+        if (!updated) {
+            return Result.error("更新活动失败");
+        }
+        return Result.success("更新成功", activity);
+    }
+
+    /**
+     * 删除活动（后台管理，逻辑删除）
+     */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteActivity(@PathVariable Long id) {
+        boolean removed = activityService.removeById(id);
+        return removed ? Result.success("删除成功") : Result.error("删除失败");
+    }
+
+    /**
      * 活动报名请求对象
      */
     public static class ActivityRegistrationRequest {

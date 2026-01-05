@@ -30,5 +30,16 @@ public interface MemberService extends IService<Member> {
      */
     boolean applyMember(Member member);
 
+    /**
+     * 审核会员申请
+     *
+     * @param memberId 会员ID
+     * @param status 审核状态（1-通过，2-拒绝）
+     * @param reviewRemark 审核意见
+     * @param reviewedBy 审核人ID（可选）
+     * @return 是否成功
+     */
+    boolean reviewMember(Long memberId, Integer status, String reviewRemark, Long reviewedBy);
+
 }
 

@@ -189,6 +189,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
+import request from '@/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -261,41 +262,25 @@ const fetchCertificateDetail = async () => {
   if (!isEdit.value || !certificateId.value) return
 
   try {
-    const response = await fetch(`http://localhost:8080/api/certificate/${certificateId.value}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
+    const result = await request.get(`/certificate/${certificateId.value}`)
+    const certificate = result.data
+    Object.assign(formData, {
+      name: certificate.name || '',
+      type: certificate.type || '',
+      number: certificate.number || '',
+      holder: certificate.holder || '',
+      holderContact: certificate.holderContact || '',
+      issuingAuthority: certificate.issuingAuthority || '',
+      issueDate: certificate.issueDate || '',
+      validFrom: certificate.validFrom || '',
+      validUntil: certificate.validUntil || '',
+      status: certificate.status ?? 1,
+      isPublic: certificate.isPublic ?? true,
+      attachmentPath: certificate.attachmentPath || '',
+      description: certificate.description || ''
     })
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200) {
-      const certificate = result.data
-      Object.assign(formData, {
-        name: certificate.name || '',
-        type: certificate.type || '',
-        number: certificate.number || '',
-        holder: certificate.holder || '',
-        holderContact: certificate.holderContact || '',
-        issuingAuthority: certificate.issuingAuthority || '',
-        issueDate: certificate.issueDate || '',
-        validFrom: certificate.validFrom || '',
-        validUntil: certificate.validUntil || '',
-        status: certificate.status ?? 1,
-        isPublic: certificate.isPublic ?? true,
-        attachmentPath: certificate.attachmentPath || '',
-        description: certificate.description || ''
-      })
-    } else {
-      ElMessage.error(result.message || '获取证件详情失败')
-    }
   } catch (error: any) {
     console.error('获取证件详情失败:', error)
-    ElMessage.error('获取证件详情失败: ' + (error?.message || '未知错误'))
   }
 }
 
@@ -316,37 +301,16 @@ const handleSave = async () => {
 
     saving.value = true
 
-    const url = isEdit.value
-      ? `http://localhost:8080/api/certificate/${certificateId.value}`
-      : 'http://localhost:8080/api/certificate'
-
-    const method = isEdit.value ? 'PUT' : 'POST'
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200) {
-      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
-      router.push('/content/certificates')
+    if (isEdit.value) {
+      await request.put(`/certificate/${certificateId.value}`, formData)
     } else {
-      ElMessage.error(result.message || (isEdit.value ? '更新失败' : '创建失败'))
+      await request.post('/certificate', formData)
     }
+    
+    ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+    router.push('/content/certificates')
   } catch (error: any) {
-    if (error?.message) {
-      console.error('保存失败:', error)
-      ElMessage.error('保存失败: ' + error.message)
-    }
+    console.error('保存失败:', error)
   } finally {
     saving.value = false
   }

@@ -60,5 +60,31 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         
         return save(member);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean reviewMember(Long memberId, Integer status, String reviewRemark, Long reviewedBy) {
+        Member member = getById(memberId);
+        if (member == null) {
+            throw new RuntimeException("会员不存在");
+        }
+        
+        if (member.getStatus() != null && member.getStatus() != 0) {
+            throw new RuntimeException("该会员申请已审核，不能重复审核");
+        }
+        
+        member.setStatus(status);
+        member.setReviewRemark(reviewRemark);
+        member.setReviewedAt(LocalDateTime.now());
+        if (reviewedBy != null) {
+            member.setReviewedBy(reviewedBy);
+        }
+        // 如果审核通过，设置入会时间
+        if (status == 1) {
+            member.setJoinedAt(LocalDateTime.now());
+        }
+        
+        return updateById(member);
+    }
 }
 

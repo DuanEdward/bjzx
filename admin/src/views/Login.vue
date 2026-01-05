@@ -46,6 +46,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import request from '@/api'
 
 const router = useRouter()
 const loginFormRef = ref()
@@ -74,18 +75,25 @@ const handleLogin = async () => {
     await loginFormRef.value.validate()
     loading.value = true
 
-    // 模拟登录接口
-    if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
-      // 保存token
-      localStorage.setItem('token', 'mock-token-123456')
+    // 调用登录API
+    const result = await request.post('/auth/login', {
+      username: loginForm.username,
+      password: loginForm.password
+    })
+
+    // 保存token和用户信息
+    if (result.data.token) {
+      localStorage.setItem('token', result.data.token)
+      if (result.data.user) {
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+      }
       ElMessage.success('登录成功')
       router.push('/')
     } else {
-      ElMessage.error('用户名或密码错误')
+      ElMessage.error('登录失败：未获取到token')
     }
   } catch (error: any) {
     console.error('登录失败:', error)
-    ElMessage.error(error?.message || '登录失败，请稍后重试')
   } finally {
     loading.value = false
   }

@@ -79,5 +79,47 @@ public class ResourceController {
         boolean success = resourceService.incrementDownloadCount(id);
         return success ? Result.success() : Result.error("操作失败");
     }
+
+    /**
+     * 创建资源（后台管理）
+     */
+    @PostMapping
+    public Result<Resource> createResource(@RequestBody Resource resource) {
+        // 新建资源默认下载次数为0
+        if (resource.getDownloadCount() == null) {
+            resource.setDownloadCount(0);
+        }
+        boolean saved = resourceService.save(resource);
+        if (!saved) {
+            return Result.error("创建资源失败");
+        }
+        return Result.success("创建成功", resource);
+    }
+
+    /**
+     * 更新资源（后台管理）
+     */
+    @PutMapping("/{id}")
+    public Result<Resource> updateResource(@PathVariable Long id, @RequestBody Resource resource) {
+        Resource existing = resourceService.getById(id);
+        if (existing == null) {
+            return Result.notFound();
+        }
+        resource.setId(id);
+        boolean updated = resourceService.updateById(resource);
+        if (!updated) {
+            return Result.error("更新资源失败");
+        }
+        return Result.success("更新成功", resource);
+    }
+
+    /**
+     * 删除资源（后台管理，逻辑删除）
+     */
+    @DeleteMapping("/{id}")
+    public Result<?> deleteResource(@PathVariable Long id) {
+        boolean removed = resourceService.removeById(id);
+        return removed ? Result.success("删除成功") : Result.error("删除失败");
+    }
 }
 

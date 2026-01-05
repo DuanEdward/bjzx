@@ -330,6 +330,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Upload, Download, UploadFilled } from '@element-plus/icons-vue'
 import type { UploadFile, UploadFiles } from 'element-plus'
+import request from '@/api'
 
 // 类型定义
 interface Certificate {
@@ -414,40 +415,24 @@ const handleReset = () => {
 const fetchCertificateList = async () => {
   try {
     loading.value = true
-    const params = new URLSearchParams({
-      current: pagination.current.toString(),
-      size: pagination.size.toString()
-    })
+    const params: any = {
+      current: pagination.current,
+      size: pagination.size
+    }
 
     // 添加搜索参数
-    if (searchForm.name) params.append('name', searchForm.name)
-    if (searchForm.type) params.append('type', searchForm.type)
-    if (searchForm.number) params.append('number', searchForm.number)
-    if (searchForm.holder) params.append('holder', searchForm.holder)
-    if (searchForm.status !== '') params.append('status', searchForm.status)
-    if (searchForm.isPublic !== '') params.append('isPublic', searchForm.isPublic)
+    if (searchForm.name) params.name = searchForm.name
+    if (searchForm.type) params.type = searchForm.type
+    if (searchForm.number) params.number = searchForm.number
+    if (searchForm.holder) params.holder = searchForm.holder
+    if (searchForm.status !== '') params.status = searchForm.status
+    if (searchForm.isPublic !== '') params.isPublic = searchForm.isPublic
 
-    const response = await fetch(`http://localhost:8080/api/certificate/page?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200) {
-      total.value = result.data.total
-      certificateList.value = result.data.records || []
-    } else {
-      ElMessage.error(result.message || '查询失败')
-    }
+    const result = await request.get('/certificate/page', { params })
+    total.value = result.data.total
+    certificateList.value = result.data.records || []
   } catch (error: any) {
     console.error('查询失败:', error)
-    ElMessage.error('查询失败: ' + (error?.message || '未知错误'))
   } finally {
     loading.value = false
   }
@@ -466,27 +451,11 @@ const handleEdit = (row: Certificate) => {
 // 查看
 const handleView = async (row: Certificate) => {
   try {
-    const response = await fetch(`http://localhost:8080/api/certificate/${row.id}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200) {
-      currentCertificate.value = result.data as Certificate
-      detailDialogVisible.value = true
-    } else {
-      ElMessage.error(result.message || '查询失败')
-    }
+    const result = await request.get(`/certificate/${row.id}`)
+    currentCertificate.value = result.data as Certificate
+    detailDialogVisible.value = true
   } catch (error: any) {
     console.error('查询详情失败:', error)
-    ElMessage.error('查询详情失败: ' + (error?.message || '未知错误'))
   }
 }
 
@@ -502,28 +471,11 @@ const handleDelete = (row: Certificate) => {
     }
   ).then(async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/certificate/${row.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('网络请求失败')
-      }
-
-      const result = await response.json()
-      if (result.code === 200) {
-        ElMessage.success('删除成功')
-        fetchCertificateList()
-      } else {
-        ElMessage.error(result.message || '删除失败')
-      }
+      await request.delete(`/certificate/${row.id}`)
+      ElMessage.success('删除成功')
+      fetchCertificateList()
     } catch (error: any) {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败: ' + (error?.message || '未知错误'))
     }
   })
 }
@@ -546,30 +498,12 @@ const handleBatchDelete = () => {
     }
   ).then(async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/certificate/batch', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ids)
-      })
-
-      if (!response.ok) {
-        throw new Error('网络请求失败')
-      }
-
-      const result = await response.json()
-      if (result.code === 200) {
-        ElMessage.success('批量删除成功')
-        selectedCertificates.value = []
-        fetchCertificateList()
-      } else {
-        ElMessage.error(result.message || '批量删除失败')
-      }
+      await request.delete('/certificate/batch', { data: ids })
+      ElMessage.success('批量删除成功')
+      selectedCertificates.value = []
+      fetchCertificateList()
     } catch (error: any) {
       console.error('批量删除失败:', error)
-      ElMessage.error('批量删除失败: ' + (error?.message || '未知错误'))
     }
   })
 }
@@ -634,7 +568,7 @@ const getStatusText = (status: number) => {
 // 下载模板
 const handleDownloadTemplate = () => {
   const link = document.createElement('a')
-  link.href = 'http://localhost:8080/api/certificate/template'
+  link.href = '/api/certificate/template'
   link.download = 'certificate_template.xlsx'
   link.style.display = 'none'
   document.body.appendChild(link)
@@ -688,22 +622,13 @@ const handleConfirmImport = async () => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch('http://localhost:8080/api/certificate/batch-import', {
-      method: 'POST',
+    const result = await request.post('/certificate/batch-import', formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: formData
+        'Content-Type': 'multipart/form-data'
+      }
     })
-
-    if (!response.ok) {
-      throw new Error('网络请求失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200) {
-      importResult.value = result.data
-      ElMessage.success(`导入完成：成功 ${result.data.successCount} 条，失败 ${result.data.failCount} 条`)
+    importResult.value = result.data
+    ElMessage.success(`导入完成：成功 ${result.data.successCount} 条，失败 ${result.data.failCount} 条`)
       
       // 如果全部成功，关闭对话框并刷新列表
       if (result.data.failCount === 0) {
