@@ -627,8 +627,10 @@ const handleConfirmImport = async () => {
         'Content-Type': 'multipart/form-data'
       }
     })
-    importResult.value = result.data
-    ElMessage.success(`导入完成：成功 ${result.data.successCount} 条，失败 ${result.data.failCount} 条`)
+    
+    if (result.code === 200 && result.data) {
+      importResult.value = result.data
+      ElMessage.success(`导入完成：成功 ${result.data.successCount} 条，失败 ${result.data.failCount} 条`)
       
       // 如果全部成功，关闭对话框并刷新列表
       if (result.data.failCount === 0) {
@@ -643,10 +645,10 @@ const handleConfirmImport = async () => {
     } else {
       ElMessage.error(result.message || '导入失败')
     }
-    } catch (error: any) {
-      console.error('导入失败:', error)
-      ElMessage.error('导入失败: ' + (error?.message || '未知错误'))
-    } finally {
+  } catch (error: any) {
+    console.error('导入失败:', error)
+    ElMessage.error('导入失败: ' + (error?.message || '未知错误'))
+  } finally {
     importing.value = false
   }
 }
