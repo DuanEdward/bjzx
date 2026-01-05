@@ -21,7 +21,9 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     const { data } = response
-    if (data.code === 200) {
+    // 后端返回的格式是 { code, message, data }
+    if (data.code === 200 || data.code === 0) {
+      // 直接返回data对象，这样外部可以通过 .data 访问实际数据
       return data as any
     } else {
       console.error('API Error:', data.message)
@@ -30,6 +32,22 @@ request.interceptors.response.use(
   },
   (error) => {
     console.error('Request Error:', error)
+    // 网络错误或其他错误
+    if (error.response) {
+      // 服务器返回了错误状态码
+      const { status, data } = error.response
+      if (status === 404) {
+        console.error('API endpoint not found')
+      } else if (status >= 500) {
+        console.error('Server error:', status)
+      }
+    } else if (error.request) {
+      // 请求已发出但没有收到响应
+      console.error('No response received')
+    } else {
+      // 请求配置出错
+      console.error('Request setup error:', error.message)
+    }
     return Promise.reject(error)
   }
 )

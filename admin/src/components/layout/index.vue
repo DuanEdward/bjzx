@@ -95,28 +95,40 @@ const activeMenu = computed(() => route.path)
 
 // 获取菜单路由
 const menuRoutes = computed(() => {
-  return router.getRoutes()
-    .filter(route => {
-      // 过滤掉登录页和没有meta的路由
-      if (route.path === '/login' || !route.meta) return false
-      // 只显示有title的路由（即菜单项）
-      return route.meta.title && !route.meta.hidden
-    })
-    .reduce((acc: any[], route) => {
-      // 如果是父路由（有children），需要特殊处理
-      if (route.children && route.children.length > 0) {
-        const visibleChildren = route.children.filter(child => !child.meta?.hidden)
-        if (visibleChildren.length > 0) {
-          acc.push({
-            ...route,
-            children: visibleChildren
-          })
-        }
-      } else if (!route.meta.hidden) {
-        acc.push(route)
+  // 使用router.options.routes获取原始路由配置，避免重复
+  const routes = router.options.routes.filter(route => {
+    // 过滤掉登录页和根路径
+    if (route.path === '/login' || route.path === '/') return false
+    // 只显示有meta和title的父路由
+    return route.meta && route.meta.title && !route.meta.hidden
+  })
+  
+  // 去重处理，确保每个路由只出现一次
+  const seen = new Set<string>()
+  const result: any[] = []
+  
+  routes.forEach(route => {
+    const key = route.path
+    // 如果已经处理过，跳过
+    if (seen.has(key)) return
+    
+    // 如果是父路由（有children），需要特殊处理
+    if (route.children && route.children.length > 0) {
+      const visibleChildren = route.children.filter(child => !child.meta?.hidden)
+      if (visibleChildren.length > 0) {
+        seen.add(key)
+        result.push({
+          ...route,
+          children: visibleChildren
+        })
       }
-      return acc
-    }, [])
+    } else if (!route.meta.hidden) {
+      seen.add(key)
+      result.push(route)
+    }
+  })
+  
+  return result
 })
 
 // 获取面包屑

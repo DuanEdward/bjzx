@@ -2,7 +2,9 @@
   <div id="app">
     <AppHeader />
     <main class="main-content">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <component :is="Component" v-if="Component" />
+      </router-view>
     </main>
     <AppFooter />
   </div>

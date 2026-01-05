@@ -122,15 +122,28 @@ const initData = async () => {
   try {
     // 获取Banner数据
     const bannerRes = await getBanners()
+    console.log('Banner响应:', bannerRes)
     // API拦截器已经处理了响应格式，data直接是Banner数组
-    banners.value = (bannerRes.data as Banner[]) || []
+    if (bannerRes && bannerRes.data) {
+      banners.value = Array.isArray(bannerRes.data) ? bannerRes.data : []
+    } else {
+      banners.value = []
+    }
 
     // 获取最新新闻
     const newsRes = await getLatestNews({ pageSize: 5 })
+    console.log('News响应:', newsRes)
     // 后端返回的是List<News>，不是分页格式
-    newsList.value = (newsRes.data as News[]) || []
+    if (newsRes && newsRes.data) {
+      newsList.value = Array.isArray(newsRes.data) ? newsRes.data : []
+    } else {
+      newsList.value = []
+    }
   } catch (error) {
     console.error('获取首页数据失败:', error)
+    // 即使出错也显示页面，只是没有数据
+    banners.value = []
+    newsList.value = []
   }
 }
 
