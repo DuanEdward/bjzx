@@ -177,83 +177,46 @@ fi
 
 # 如果构建失败，尝试降级策略
 if [ "$BUILD_SUCCESS" = false ]; then
-    BUILD_ERROR=$(tail -100 /tmp/admin-build.log 2>/dev/null || echo "")
+    BUILD_ERROR=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
     echo -e "${YELLOW}完整构建失败，检查错误原因...${NC}"
     
-    # 检查是否是内存问题（Killed）或构建在 rendering chunks 阶段中断
-    IS_OOM=false
-    if echo "$BUILD_ERROR" | grep -q "Killed\|OOM\|out of memory"; then
-        IS_OOM=true
-    elif echo "$BUILD_ERROR" | grep -q "rendering chunks" && ! echo "$BUILD_ERROR" | grep -q "built in\|dist/index.html"; then
-        # 构建在 rendering chunks 阶段停止，可能是被静默终止
-        echo -e "${RED}检测到构建在 rendering chunks 阶段被中断（可能是 OOM）${NC}"
-        IS_OOM=true
-    fi
-    
-    if [ "$IS_OOM" = true ]; then
+    if echo "$BUILD_ERROR" | grep -q "Killed"; then
         echo -e "${RED}管理后台构建因内存不足被终止，尝试优化构建策略...${NC}"
         echo -e "${YELLOW}策略1: 跳过类型检查，直接构建...${NC}"
         # 跳过类型检查，直接构建
         rm -rf dist
         rm -f /tmp/admin-build.log
         if npx vite build 2>&1 | tee /tmp/admin-build.log; then
-            # 等待文件系统同步
-            sleep 2
             if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
                 echo -e "${GREEN}策略1成功：跳过类型检查构建完成${NC}"
                 BUILD_SUCCESS=true
-            else
-                echo -e "${YELLOW}策略1: 命令成功但未生成 dist，检查日志...${NC}"
-                # 检查是否再次在 rendering chunks 阶段中断
-                if tail -50 /tmp/admin-build.log 2>/dev/null | grep -q "rendering chunks" && ! tail -50 /tmp/admin-build.log 2>/dev/null | grep -q "built in"; then
-                    echo -e "${RED}策略1也在 rendering chunks 阶段中断${NC}"
-                fi
             fi
         fi
         
         if [ "$BUILD_SUCCESS" = false ]; then
-            BUILD_ERROR2=$(tail -100 /tmp/admin-build.log 2>/dev/null || echo "")
-            if echo "$BUILD_ERROR2" | grep -q "Killed\|OOM\|out of memory\|rendering chunks"; then
+            BUILD_ERROR2=$(tail -30 /tmp/admin-build.log 2>/dev/null || echo "")
+            if echo "$BUILD_ERROR2" | grep -q "Killed"; then
                 echo -e "${RED}策略1也因内存不足失败，尝试策略2: 使用更低的内存配置...${NC}"
                 # 进一步降低内存使用
                 export NODE_OPTIONS="--max_old_space_size=512"
                 rm -rf dist
                 rm -f /tmp/admin-build.log
                 if npx vite build --mode production 2>&1 | tee /tmp/admin-build.log; then
-                    sleep 2
                     if [ -d "dist" ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then
                         echo -e "${GREEN}策略2成功：使用低内存配置构建完成${NC}"
                         BUILD_SUCCESS=true
-                    else
-                        echo -e "${RED}策略2: 命令成功但未生成 dist${NC}"
                     fi
                 fi
-            else
-                echo -e "${RED}策略1失败（非内存问题）${NC}"
-                echo "错误信息："
-                echo "$BUILD_ERROR2"
             fi
         fi
-    else
-        echo -e "${RED}构建失败（非内存问题）${NC}"
-        echo "错误信息："
-        echo "$BUILD_ERROR"
     fi
     
     # 如果所有策略都失败
     if [ "$BUILD_SUCCESS" = false ]; then
         echo -e "${RED}管理后台构建完全失败！${NC}"
-        echo -e "${YELLOW}完整构建日志（最后100行）：${NC}"
-        tail -100 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
-        echo ""
-        echo -e "${YELLOW}诊断信息：${NC}"
-        echo "检查系统 OOM 日志: dmesg | grep -i 'killed\|oom' | tail -10"
-        echo "检查可用内存: free -h"
-        echo ""
-        echo -e "${YELLOW}建议:${NC}"
-        echo "1. 在本地构建管理后台后上传（使用 build-local.sh 或 build-local.bat）"
-        echo "2. 增加服务器内存"
-        echo "3. 使用本地构建脚本: ./build-local.sh"
+        echo -e "${YELLOW}最后50行构建日志：${NC}"
+        tail -50 /tmp/admin-build.log 2>/dev/null || echo "无法读取日志"
+        echo -e "${YELLOW}建议: 在本地构建管理后台后上传，或增加服务器内存${NC}"
         exit 1
     fi
 fi
@@ -477,12 +440,55 @@ fi
 # 5. 重启服务
 echo -e "${YELLOW}[5/5] 重启服务...${NC}"
 
-# 重启后端服务
+# 检查并安装后端服务
+if [ ! -f "/etc/systemd/system/bjzxjj-backend.service" ]; then
+    echo -e "${YELLOW}后端服务未安装，正在安装...${NC}"
+    
+    # 生成systemd服务文件
+    cat > /etc/systemd/system/bjzxjj-backend.service <<EOF
+[Unit]
+Description=北京中兴建机职业技能鉴定中心网站后端服务
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${BACKEND_DIR}
+ExecStart=/usr/bin/java -Xms${JVM_XMS} -Xmx${JVM_XMX} -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -jar ${BACKEND_DIR}/bjzxjj-website.jar --spring.profiles.active=prod
+ExecStop=/bin/kill -15 \$MAINPID
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bjzxjj-backend
+
+# 环境变量
+Environment="JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    
+    # 重载systemd配置
+    systemctl daemon-reload
+    
+    # 启用服务（开机自启）
+    systemctl enable bjzxjj-backend
+    
+    echo -e "${GREEN}后端服务已安装${NC}"
+fi
+
+# 启动或重启后端服务
 if systemctl is-active --quiet bjzxjj-backend 2>/dev/null; then
     systemctl restart bjzxjj-backend
     echo -e "${GREEN}后端服务已重启${NC}"
 else
-    echo -e "${YELLOW}后端服务未运行，请稍后手动启动${NC}"
+    systemctl start bjzxjj-backend
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}后端服务已启动${NC}"
+    else
+        echo -e "${RED}后端服务启动失败，请检查日志: journalctl -u bjzxjj-backend -n 50${NC}"
+    fi
 fi
 
 # 重启Nginx
