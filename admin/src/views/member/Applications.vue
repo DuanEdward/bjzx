@@ -223,7 +223,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import request from '@/api'
@@ -345,9 +345,8 @@ const handleReject = (row: Member) => {
 
 // 提交审核
 const handleReviewSubmit = async () => {
-  if (reviewType.value === 'reject' && !reviewFormRef.value) return
-
   if (reviewType.value === 'reject') {
+    if (!reviewFormRef.value) return
     try {
       await reviewFormRef.value.validate()
     } catch {
