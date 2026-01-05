@@ -1,0 +1,187 @@
+#!/bin/bash
+
+# 部署检查脚本 - 用于诊断前端资源404问题
+
+set -e
+
+# 加载配置文件
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
+# 颜色输出
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${GREEN}=========================================="
+echo "部署检查脚本"
+echo "==========================================${NC}"
+echo ""
+
+# 1. 检查目录是否存在
+echo -e "${YELLOW}[1] 检查部署目录...${NC}"
+if [ -d "${FRONTEND_DIR}" ]; then
+    echo -e "${GREEN}✓ 前端目录存在: ${FRONTEND_DIR}${NC}"
+    echo "  文件数量: $(find ${FRONTEND_DIR} -type f | wc -l)"
+    echo "  目录大小: $(du -sh ${FRONTEND_DIR} 2>/dev/null | cut -f1)"
+    if [ -f "${FRONTEND_DIR}/index.html" ]; then
+        echo -e "${GREEN}  ✓ index.html 存在${NC}"
+    else
+        echo -e "${RED}  ✗ index.html 不存在${NC}"
+    fi
+else
+    echo -e "${RED}✗ 前端目录不存在: ${FRONTEND_DIR}${NC}"
+fi
+
+if [ -d "${ADMIN_DIR}" ]; then
+    echo -e "${GREEN}✓ 管理后台目录存在: ${ADMIN_DIR}${NC}"
+    echo "  文件数量: $(find ${ADMIN_DIR} -type f | wc -l)"
+    echo "  目录大小: $(du -sh ${ADMIN_DIR} 2>/dev/null | cut -f1)"
+    if [ -f "${ADMIN_DIR}/index.html" ]; then
+        echo -e "${GREEN}  ✓ index.html 存在${NC}"
+    else
+        echo -e "${RED}  ✗ index.html 不存在${NC}"
+    fi
+else
+    echo -e "${RED}✗ 管理后台目录不存在: ${ADMIN_DIR}${NC}"
+fi
+
+echo ""
+
+# 2. 检查文件权限
+echo -e "${YELLOW}[2] 检查文件权限...${NC}"
+if [ -d "${FRONTEND_DIR}" ]; then
+    FRONTEND_PERM=$(stat -c "%a" ${FRONTEND_DIR} 2>/dev/null || stat -f "%OLp" ${FRONTEND_DIR} 2>/dev/null || echo "unknown")
+    echo "  前端目录权限: ${FRONTEND_PERM}"
+    if [ -f "${FRONTEND_DIR}/index.html" ]; then
+        FILE_PERM=$(stat -c "%a" ${FRONTEND_DIR}/index.html 2>/dev/null || stat -f "%OLp" ${FRONTEND_DIR}/index.html 2>/dev/null || echo "unknown")
+        echo "  index.html 权限: ${FILE_PERM}"
+    fi
+fi
+
+if [ -d "${ADMIN_DIR}" ]; then
+    ADMIN_PERM=$(stat -c "%a" ${ADMIN_DIR} 2>/dev/null || stat -f "%OLp" ${ADMIN_DIR} 2>/dev/null || echo "unknown")
+    echo "  管理后台目录权限: ${ADMIN_PERM}"
+    if [ -f "${ADMIN_DIR}/index.html" ]; then
+        FILE_PERM=$(stat -c "%a" ${ADMIN_DIR}/index.html 2>/dev/null || stat -f "%OLp" ${ADMIN_DIR}/index.html 2>/dev/null || echo "unknown")
+        echo "  index.html 权限: ${FILE_PERM}"
+    fi
+fi
+
+echo ""
+
+# 3. 检查静态资源文件
+echo -e "${YELLOW}[3] 检查静态资源文件...${NC}"
+if [ -d "${FRONTEND_DIR}" ]; then
+    JS_COUNT=$(find ${FRONTEND_DIR} -name "*.js" | wc -l)
+    CSS_COUNT=$(find ${FRONTEND_DIR} -name "*.css" | wc -l)
+    echo "  前端 JS 文件: ${JS_COUNT}"
+    echo "  前端 CSS 文件: ${CSS_COUNT}"
+    if [ "$JS_COUNT" -eq 0 ]; then
+        echo -e "${RED}  ✗ 未找到 JS 文件${NC}"
+    fi
+    if [ "$CSS_COUNT" -eq 0 ]; then
+        echo -e "${RED}  ✗ 未找到 CSS 文件${NC}"
+    fi
+fi
+
+if [ -d "${ADMIN_DIR}" ]; then
+    JS_COUNT=$(find ${ADMIN_DIR} -name "*.js" | wc -l)
+    CSS_COUNT=$(find ${ADMIN_DIR} -name "*.css" | wc -l)
+    echo "  管理后台 JS 文件: ${JS_COUNT}"
+    echo "  管理后台 CSS 文件: ${CSS_COUNT}"
+    if [ "$JS_COUNT" -eq 0 ]; then
+        echo -e "${RED}  ✗ 未找到 JS 文件${NC}"
+    fi
+    if [ "$CSS_COUNT" -eq 0 ]; then
+        echo -e "${RED}  ✗ 未找到 CSS 文件${NC}"
+    fi
+fi
+
+echo ""
+
+# 4. 检查 Nginx 配置
+echo -e "${YELLOW}[4] 检查 Nginx 配置...${NC}"
+if [ -f "/etc/nginx/conf.d/bjzxjj.conf" ]; then
+    echo -e "${GREEN}✓ Nginx 配置文件存在${NC}"
+    
+    # 检查配置中的路径
+    CONFIG_FRONTEND=$(grep -A 2 "location / {" /etc/nginx/conf.d/bjzxjj.conf | grep "root" | awk '{print $2}' | tr -d ';' || echo "")
+    CONFIG_ADMIN=$(grep -A 2 "location /admin" /etc/nginx/conf.d/bjzxjj.conf | grep "alias" | awk '{print $2}' | tr -d ';' || echo "")
+    
+    echo "  配置中的前端路径: ${CONFIG_FRONTEND:-未找到}"
+    echo "  配置中的管理后台路径: ${CONFIG_ADMIN:-未找到}"
+    
+    if [ -n "$CONFIG_FRONTEND" ] && [ "$CONFIG_FRONTEND" != "${FRONTEND_DIR}" ]; then
+        echo -e "${YELLOW}  ⚠ 前端路径不匹配${NC}"
+    fi
+    if [ -n "$CONFIG_ADMIN" ] && [ "$CONFIG_ADMIN" != "${ADMIN_DIR}/" ]; then
+        echo -e "${YELLOW}  ⚠ 管理后台路径不匹配${NC}"
+    fi
+    
+    # 测试 Nginx 配置
+    if nginx -t 2>&1 | grep -q "successful"; then
+        echo -e "${GREEN}  ✓ Nginx 配置语法正确${NC}"
+    else
+        echo -e "${RED}  ✗ Nginx 配置语法错误${NC}"
+        nginx -t
+    fi
+else
+    echo -e "${RED}✗ Nginx 配置文件不存在${NC}"
+fi
+
+echo ""
+
+# 5. 检查 index.html 中的资源路径
+echo -e "${YELLOW}[5] 检查 index.html 中的资源路径...${NC}"
+if [ -f "${FRONTEND_DIR}/index.html" ]; then
+    echo "  前端 index.html 中的资源引用:"
+    grep -oE 'src="[^"]*"|href="[^"]*"' ${FRONTEND_DIR}/index.html | head -5 | sed 's/^/    /'
+fi
+
+if [ -f "${ADMIN_DIR}/index.html" ]; then
+    echo "  管理后台 index.html 中的资源引用:"
+    grep -oE 'src="[^"]*"|href="[^"]*"' ${ADMIN_DIR}/index.html | head -5 | sed 's/^/    /'
+    
+    # 检查是否有 /admin/ 前缀
+    if grep -q 'href="/admin/' ${ADMIN_DIR}/index.html || grep -q 'src="/admin/' ${ADMIN_DIR}/index.html; then
+        echo -e "${GREEN}  ✓ 资源路径包含 /admin/ 前缀${NC}"
+    else
+        echo -e "${YELLOW}  ⚠ 资源路径可能缺少 /admin/ 前缀${NC}"
+        echo "    提示: 需要重新构建管理后台（已设置 base: '/admin/'）"
+    fi
+fi
+
+echo ""
+
+# 6. 检查 Nginx 服务状态
+echo -e "${YELLOW}[6] 检查 Nginx 服务状态...${NC}"
+if systemctl is-active --quiet nginx; then
+    echo -e "${GREEN}✓ Nginx 服务正在运行${NC}"
+else
+    echo -e "${RED}✗ Nginx 服务未运行${NC}"
+fi
+
+echo ""
+
+# 7. 建议
+echo -e "${YELLOW}[7] 修复建议...${NC}"
+echo "  如果发现问题，请执行以下步骤："
+echo ""
+echo "  1. 重新构建并部署："
+echo "     cd $(dirname ${PROJECT_SOURCE_DIR})/deploy"
+echo "     ./deploy.sh"
+echo ""
+echo "  2. 检查文件权限："
+echo "     ls -la ${FRONTEND_DIR}"
+echo "     ls -la ${ADMIN_DIR}"
+echo ""
+echo "  3. 查看 Nginx 错误日志："
+echo "     tail -50 /var/log/nginx/bjzxjj-error.log"
+echo ""
+echo "  4. 测试静态资源访问："
+echo "     curl -I http://localhost/"
+echo "     curl -I http://localhost/admin/"
+echo ""
+

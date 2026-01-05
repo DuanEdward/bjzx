@@ -127,6 +127,7 @@ if [ ! -d "dist" ]; then
 fi
 
 # 复制构建文件到部署目录
+mkdir -p ${FRONTEND_DIR}
 rm -rf ${FRONTEND_DIR}/*
 cp -r dist/* ${FRONTEND_DIR}/
 echo -e "${GREEN}前端构建完成${NC}"
@@ -363,24 +364,25 @@ server {
     listen 80;
     server_name ${DOMAIN} ${DOMAIN_WWW};
     
+    # 管理后台
+    location /admin/ {
+        alias ${ADMIN_DIR}/;
+        index index.html;
+        try_files \$uri \$uri/ /admin/index.html;
+        
+        # 静态资源缓存
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+    
     # 前端站点
     location / {
         root ${FRONTEND_DIR};
         index index.html;
         try_files \$uri \$uri/ /index.html;
-        
-        # 缓存静态资源
-        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
-            expires 30d;
-            add_header Cache-Control "public, immutable";
-        }
-    }
-    
-    # 管理后台
-    location /admin {
-        alias ${ADMIN_DIR};
-        index index.html;
-        try_files \$uri \$uri/ /admin/index.html;
         
         # 缓存静态资源
         location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
@@ -496,10 +498,17 @@ systemctl restart nginx
 echo -e "${GREEN}Nginx已重启${NC}"
 
 # 设置目录权限
-chown -R nginx:nginx ${PROJECT_HOME} 2>/dev/null || chown -R root:root ${PROJECT_HOME}
-chmod -R 755 ${PROJECT_HOME}
-chmod -R 777 ${UPLOAD_DIR}
-chmod -R 777 ${LOG_DIR}
+# 确保目录存在
+mkdir -p ${FRONTEND_DIR} ${ADMIN_DIR} ${UPLOAD_DIR} ${LOG_DIR} ${BACKEND_DIR}
+
+# 设置文件权限（nginx用户需要读取权限）
+chown -R nginx:nginx ${FRONTEND_DIR} ${ADMIN_DIR} 2>/dev/null || chown -R root:root ${FRONTEND_DIR} ${ADMIN_DIR}
+chmod -R 755 ${FRONTEND_DIR} ${ADMIN_DIR}
+chmod -R 644 ${FRONTEND_DIR}/* ${ADMIN_DIR}/* 2>/dev/null || true
+
+# 上传和日志目录权限
+chown -R nginx:nginx ${UPLOAD_DIR} ${LOG_DIR} 2>/dev/null || chown -R root:root ${UPLOAD_DIR} ${LOG_DIR}
+chmod -R 755 ${UPLOAD_DIR} ${LOG_DIR}
 
 echo -e "${GREEN}=========================================="
 echo "部署完成！"

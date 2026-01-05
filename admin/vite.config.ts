@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 
 export default defineConfig({
+  base: '/admin/',  // 设置基础路径，确保静态资源路径正确
   plugins: [vue()],
   resolve: {
     alias: {
