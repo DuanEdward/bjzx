@@ -23,13 +23,17 @@
             <el-menu-item
               v-for="child in route.children"
               :key="child.path"
-              :index="child.path"
+              :index="getFullPath(route.path, child.path)"
               v-show="!child.meta?.hidden"
             >
               {{ child.meta?.title }}
             </el-menu-item>
           </el-sub-menu>
-          <el-menu-item v-else :index="route.children?.[0].path || route.path">
+          <el-menu-item v-else-if="route.children && route.children.length === 1" :index="getFullPath(route.path, route.children[0].path)">
+            <el-icon><component :is="route.meta?.icon" /></el-icon>
+            <span>{{ route.meta?.title }}</span>
+          </el-menu-item>
+          <el-menu-item v-else :index="route.path">
             <el-icon><component :is="route.meta?.icon" /></el-icon>
             <span>{{ route.meta?.title }}</span>
           </el-menu-item>
@@ -91,12 +95,28 @@ const activeMenu = computed(() => route.path)
 
 // 获取菜单路由
 const menuRoutes = computed(() => {
-  return router.options.routes
-    .filter(route => !route.meta?.hidden && route.path !== '/login')
-    .map(route => ({
-      ...route,
-      children: route.children?.filter(child => !child.meta?.hidden)
-    }))
+  return router.getRoutes()
+    .filter(route => {
+      // 过滤掉登录页和没有meta的路由
+      if (route.path === '/login' || !route.meta) return false
+      // 只显示有title的路由（即菜单项）
+      return route.meta.title && !route.meta.hidden
+    })
+    .reduce((acc: any[], route) => {
+      // 如果是父路由（有children），需要特殊处理
+      if (route.children && route.children.length > 0) {
+        const visibleChildren = route.children.filter(child => !child.meta?.hidden)
+        if (visibleChildren.length > 0) {
+          acc.push({
+            ...route,
+            children: visibleChildren
+          })
+        }
+      } else if (!route.meta.hidden) {
+        acc.push(route)
+      }
+      return acc
+    }, [])
 })
 
 // 获取面包屑
@@ -119,6 +139,14 @@ const breadcrumbList = computed(() => {
 // 切换侧边栏
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
+}
+
+// 获取完整路径
+const getFullPath = (parentPath: string, childPath: string) => {
+  if (childPath.startsWith('/')) {
+    return childPath
+  }
+  return `${parentPath}/${childPath}`.replace(/\/+/g, '/')
 }
 
 // 退出登录

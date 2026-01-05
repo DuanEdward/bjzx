@@ -8,7 +8,7 @@ export function getBanners() {
 
 // 获取最新新闻
 export function getLatestNews(params?: Partial<PaginationParams>) {
-  return request.get<ApiResponse<PaginationResponse<News>>>('/home/latest-news', { params })
+  return request.get<ApiResponse<News[]>>('/home/latest-news', { params })
 }
 
 // 获取最新活动

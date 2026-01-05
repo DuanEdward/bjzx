@@ -311,6 +311,8 @@ const handleSave = async () => {
     router.push('/content/certificates')
   } catch (error: any) {
     console.error('保存失败:', error)
+    const errorMessage = error?.response?.data?.message || error?.message || '保存失败，请稍后重试'
+    ElMessage.error(errorMessage)
   } finally {
     saving.value = false
   }

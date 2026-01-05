@@ -122,12 +122,13 @@ const initData = async () => {
   try {
     // 获取Banner数据
     const bannerRes = await getBanners()
-    banners.value = (bannerRes.data as unknown as Banner[]) || []
+    // API拦截器已经处理了响应格式，data直接是Banner数组
+    banners.value = (bannerRes.data as Banner[]) || []
 
     // 获取最新新闻
     const newsRes = await getLatestNews({ pageSize: 5 })
-    const pageData = newsRes.data as any
-    newsList.value = pageData?.list || []
+    // 后端返回的是List<News>，不是分页格式
+    newsList.value = (newsRes.data as News[]) || []
   } catch (error) {
     console.error('获取首页数据失败:', error)
   }
