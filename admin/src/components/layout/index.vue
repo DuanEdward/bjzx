@@ -122,7 +122,7 @@ const menuRoutes = computed(() => {
           children: visibleChildren
         })
       }
-    } else if (!route.meta.hidden) {
+    } else if (route.meta && !route.meta.hidden) {
       seen.add(key)
       result.push(route)
     }
