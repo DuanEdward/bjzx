@@ -51,21 +51,61 @@ echo ""
 
 # 2. 检查文件权限
 echo -e "${YELLOW}[2] 检查文件权限...${NC}"
+
+# 检查nginx用户
+if id nginx &>/dev/null; then
+    NGINX_USER="nginx"
+    echo -e "${GREEN}  ✓ nginx用户存在${NC}"
+else
+    NGINX_USER="root"
+    echo -e "${YELLOW}  ⚠ nginx用户不存在，使用root${NC}"
+fi
+
 if [ -d "${FRONTEND_DIR}" ]; then
     FRONTEND_PERM=$(stat -c "%a" ${FRONTEND_DIR} 2>/dev/null || stat -f "%OLp" ${FRONTEND_DIR} 2>/dev/null || echo "unknown")
-    echo "  前端目录权限: ${FRONTEND_PERM}"
+    FRONTEND_OWNER=$(stat -c "%U:%G" ${FRONTEND_DIR} 2>/dev/null || stat -f "%Su:%Sg" ${FRONTEND_DIR} 2>/dev/null || echo "unknown")
+    echo "  前端目录权限: ${FRONTEND_PERM} (所有者: ${FRONTEND_OWNER})"
+    
+    # 检查权限是否足够（目录应该是755）
+    if [ "$FRONTEND_PERM" != "755" ] && [ "$FRONTEND_PERM" != "unknown" ]; then
+        echo -e "${YELLOW}    ⚠ 目录权限建议为755${NC}"
+    fi
+    
     if [ -f "${FRONTEND_DIR}/index.html" ]; then
         FILE_PERM=$(stat -c "%a" ${FRONTEND_DIR}/index.html 2>/dev/null || stat -f "%OLp" ${FRONTEND_DIR}/index.html 2>/dev/null || echo "unknown")
-        echo "  index.html 权限: ${FILE_PERM}"
+        FILE_OWNER=$(stat -c "%U:%G" ${FRONTEND_DIR}/index.html 2>/dev/null || stat -f "%Su:%Sg" ${FRONTEND_DIR}/index.html 2>/dev/null || echo "unknown")
+        echo "  index.html 权限: ${FILE_PERM} (所有者: ${FILE_OWNER})"
+        
+        # 检查文件是否可读
+        if [ -r "${FRONTEND_DIR}/index.html" ]; then
+            echo -e "${GREEN}    ✓ 文件可读${NC}"
+        else
+            echo -e "${RED}    ✗ 文件不可读（可能导致403错误）${NC}"
+        fi
     fi
 fi
 
 if [ -d "${ADMIN_DIR}" ]; then
     ADMIN_PERM=$(stat -c "%a" ${ADMIN_DIR} 2>/dev/null || stat -f "%OLp" ${ADMIN_DIR} 2>/dev/null || echo "unknown")
-    echo "  管理后台目录权限: ${ADMIN_PERM}"
+    ADMIN_OWNER=$(stat -c "%U:%G" ${ADMIN_DIR} 2>/dev/null || stat -f "%Su:%Sg" ${ADMIN_DIR} 2>/dev/null || echo "unknown")
+    echo "  管理后台目录权限: ${ADMIN_PERM} (所有者: ${ADMIN_OWNER})"
+    
+    # 检查权限是否足够
+    if [ "$ADMIN_PERM" != "755" ] && [ "$ADMIN_PERM" != "unknown" ]; then
+        echo -e "${YELLOW}    ⚠ 目录权限建议为755${NC}"
+    fi
+    
     if [ -f "${ADMIN_DIR}/index.html" ]; then
         FILE_PERM=$(stat -c "%a" ${ADMIN_DIR}/index.html 2>/dev/null || stat -f "%OLp" ${ADMIN_DIR}/index.html 2>/dev/null || echo "unknown")
-        echo "  index.html 权限: ${FILE_PERM}"
+        FILE_OWNER=$(stat -c "%U:%G" ${ADMIN_DIR}/index.html 2>/dev/null || stat -f "%Su:%Sg" ${ADMIN_DIR}/index.html 2>/dev/null || echo "unknown")
+        echo "  index.html 权限: ${FILE_PERM} (所有者: ${FILE_OWNER})"
+        
+        # 检查文件是否可读
+        if [ -r "${ADMIN_DIR}/index.html" ]; then
+            echo -e "${GREEN}    ✓ 文件可读${NC}"
+        else
+            echo -e "${RED}    ✗ 文件不可读（可能导致403错误）${NC}"
+        fi
     fi
 fi
 
@@ -165,22 +205,41 @@ fi
 
 echo ""
 
-# 7. 建议
-echo -e "${YELLOW}[7] 修复建议...${NC}"
+# 7. 检查SELinux（可能导致403）
+echo -e "${YELLOW}[7] 检查SELinux状态...${NC}"
+if command -v getenforce &>/dev/null; then
+    SELINUX_STATUS=$(getenforce 2>/dev/null || echo "Disabled")
+    echo "  SELinux状态: ${SELINUX_STATUS}"
+    if [ "$SELINUX_STATUS" = "Enforcing" ]; then
+        echo -e "${YELLOW}  ⚠ SELinux处于强制模式，可能阻止访问${NC}"
+        echo "    如果出现403错误，可以尝试："
+        echo "      chcon -R -t httpd_sys_content_t ${FRONTEND_DIR}"
+        echo "      chcon -R -t httpd_sys_content_t ${ADMIN_DIR}"
+    fi
+else
+    echo -e "${GREEN}  ✓ SELinux未安装或已禁用${NC}"
+fi
+echo ""
+
+# 8. 建议
+echo -e "${YELLOW}[8] 修复建议...${NC}"
 echo "  如果发现问题，请执行以下步骤："
 echo ""
-echo "  1. 重新构建并部署："
+echo "  1. 快速修复403权限问题："
 echo "     cd $(dirname ${PROJECT_SOURCE_DIR})/deploy"
+echo "     ./fix-403.sh"
+echo ""
+echo "  2. 重新构建并部署："
 echo "     ./deploy.sh"
 echo ""
-echo "  2. 检查文件权限："
+echo "  3. 检查文件权限："
 echo "     ls -la ${FRONTEND_DIR}"
 echo "     ls -la ${ADMIN_DIR}"
 echo ""
-echo "  3. 查看 Nginx 错误日志："
+echo "  4. 查看 Nginx 错误日志："
 echo "     tail -50 /var/log/nginx/bjzxjj-error.log"
 echo ""
-echo "  4. 测试静态资源访问："
+echo "  5. 测试静态资源访问："
 echo "     curl -I http://localhost/"
 echo "     curl -I http://localhost/admin/"
 echo ""

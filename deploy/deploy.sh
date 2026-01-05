@@ -130,6 +130,14 @@ fi
 mkdir -p ${FRONTEND_DIR}
 rm -rf ${FRONTEND_DIR}/*
 cp -r dist/* ${FRONTEND_DIR}/
+
+# 立即设置权限（确保nginx可以访问）
+if id nginx &>/dev/null; then
+    chown -R nginx:nginx ${FRONTEND_DIR} 2>/dev/null || true
+fi
+find ${FRONTEND_DIR} -type d -exec chmod 755 {} \; 2>/dev/null || true
+find ${FRONTEND_DIR} -type f -exec chmod 644 {} \; 2>/dev/null || true
+
 echo -e "${GREEN}前端构建完成${NC}"
 
 # 3. 构建管理后台
@@ -253,6 +261,14 @@ cp -r dist/* ${ADMIN_DIR}/ 2>/dev/null || {
     ls -la dist/ || echo "无法列出 dist 目录"
     exit 1
 }
+
+# 立即设置权限（确保nginx可以访问）
+if id nginx &>/dev/null; then
+    chown -R nginx:nginx ${ADMIN_DIR} 2>/dev/null || true
+fi
+find ${ADMIN_DIR} -type d -exec chmod 755 {} \; 2>/dev/null || true
+find ${ADMIN_DIR} -type f -exec chmod 644 {} \; 2>/dev/null || true
+
 echo -e "${GREEN}管理后台构建完成${NC}"
 
 # 4. 生成并复制配置文件
@@ -501,14 +517,34 @@ echo -e "${GREEN}Nginx已重启${NC}"
 # 确保目录存在
 mkdir -p ${FRONTEND_DIR} ${ADMIN_DIR} ${UPLOAD_DIR} ${LOG_DIR} ${BACKEND_DIR}
 
-# 设置文件权限（nginx用户需要读取权限）
-chown -R nginx:nginx ${FRONTEND_DIR} ${ADMIN_DIR} 2>/dev/null || chown -R root:root ${FRONTEND_DIR} ${ADMIN_DIR}
-chmod -R 755 ${FRONTEND_DIR} ${ADMIN_DIR}
-chmod -R 644 ${FRONTEND_DIR}/* ${ADMIN_DIR}/* 2>/dev/null || true
+# 检查nginx用户是否存在
+if id nginx &>/dev/null; then
+    NGINX_USER="nginx"
+    NGINX_GROUP="nginx"
+else
+    echo -e "${YELLOW}警告: nginx用户不存在，使用root用户${NC}"
+    NGINX_USER="root"
+    NGINX_GROUP="root"
+fi
+
+# 设置目录和文件权限（nginx用户需要读取权限）
+# 先设置目录权限（755：所有者rwx，组和其他r-x）
+find ${FRONTEND_DIR} ${ADMIN_DIR} -type d -exec chmod 755 {} \; 2>/dev/null || true
+# 再设置文件权限（644：所有者rw-，组和其他r--）
+find ${FRONTEND_DIR} ${ADMIN_DIR} -type f -exec chmod 644 {} \; 2>/dev/null || true
+# 设置所有者
+chown -R ${NGINX_USER}:${NGINX_GROUP} ${FRONTEND_DIR} ${ADMIN_DIR} 2>/dev/null || chown -R root:root ${FRONTEND_DIR} ${ADMIN_DIR}
+
+# 确保目录本身有执行权限（nginx需要进入目录）
+chmod 755 ${FRONTEND_DIR} ${ADMIN_DIR} 2>/dev/null || true
 
 # 上传和日志目录权限
-chown -R nginx:nginx ${UPLOAD_DIR} ${LOG_DIR} 2>/dev/null || chown -R root:root ${UPLOAD_DIR} ${LOG_DIR}
+chown -R ${NGINX_USER}:${NGINX_GROUP} ${UPLOAD_DIR} ${LOG_DIR} 2>/dev/null || chown -R root:root ${UPLOAD_DIR} ${LOG_DIR}
 chmod -R 755 ${UPLOAD_DIR} ${LOG_DIR}
+
+echo -e "${GREEN}文件权限已设置${NC}"
+echo "  前端目录: ${FRONTEND_DIR} (所有者: $(stat -c '%U:%G' ${FRONTEND_DIR} 2>/dev/null || echo 'unknown'))"
+echo "  管理后台目录: ${ADMIN_DIR} (所有者: $(stat -c '%U:%G' ${ADMIN_DIR} 2>/dev/null || echo 'unknown'))"
 
 echo -e "${GREEN}=========================================="
 echo "部署完成！"
