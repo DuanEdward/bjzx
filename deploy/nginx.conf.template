@@ -1,0 +1,167 @@
+# 北京中兴建机职业技能鉴定中心网站 - Nginx配置模板
+# 此文件为模板文件，部署脚本会自动替换变量
+# 变量说明：
+#   ${DOMAIN} - 主域名
+#   ${DOMAIN_WWW} - www域名
+#   ${ADMIN_DIR} - 管理后台目录
+#   ${FRONTEND_DIR} - 前端目录
+#   ${UPLOAD_DIR} - 上传文件目录
+#   ${BACKEND_PORT} - 后端服务端口
+#   ${SSL_CERT_PATH} - SSL证书文件路径（如果配置了则启用HTTPS）
+#   ${SSL_KEY_PATH} - SSL私钥文件路径
+
+# HTTP配置（如果配置了SSL证书，此配置将用于重定向到HTTPS）
+server {
+    listen 80;
+    server_name ${DOMAIN} ${DOMAIN_WWW};
+    
+    # 如果配置了SSL证书，则重定向到HTTPS；否则正常提供HTTP服务
+    # 注意：如果证书路径为空，请注释掉下面的 return 301 行
+    # return 301 https://$server_name$request_uri;
+    
+    # 管理后台
+    location /admin/ {
+        alias ${ADMIN_DIR}/;
+        index index.html;
+        try_files $uri $uri/ /admin/index.html;
+        
+        # 静态资源缓存
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+    
+    # 前端站点
+    location / {
+        root ${FRONTEND_DIR};
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        
+        # 缓存静态资源
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    
+    # 文件上传访问路径
+    location /uploads {
+        alias ${UPLOAD_DIR};
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+    
+    # 后端API代理
+    location /api {
+        proxy_pass http://localhost:${BACKEND_PORT}/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # 文件上传大小限制
+        client_max_body_size 10M;
+    }
+    
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # 日志配置
+    access_log /var/log/nginx/bjzxjj-access.log;
+    error_log /var/log/nginx/bjzxjj-error.log;
+}
+
+# HTTPS配置（如果配置了SSL证书路径，则启用HTTPS）
+# 注意：如果证书路径为空或文件不存在，请注释掉下面的整个 server 块
+server {
+    listen 443 ssl http2;
+    server_name ${DOMAIN} ${DOMAIN_WWW};
+    
+    # SSL证书配置
+    ssl_certificate ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_KEY_PATH};
+    
+    # SSL安全配置
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE:ECDH:AES256-GCM-SHA384:!aNULL:!MD5:!DSS;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    # HSTS (HTTP Strict Transport Security) - 可选，增强安全性
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    
+    # 管理后台
+    location /admin/ {
+        alias ${ADMIN_DIR}/;
+        index index.html;
+        try_files $uri $uri/ /admin/index.html;
+        
+        # 静态资源缓存
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+    
+    # 前端站点
+    location / {
+        root ${FRONTEND_DIR};
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        
+        # 缓存静态资源
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    
+    # 文件上传访问路径
+    location /uploads {
+        alias ${UPLOAD_DIR};
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+    
+    # 后端API代理
+    location /api {
+        proxy_pass http://localhost:${BACKEND_PORT}/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # 文件上传大小限制
+        client_max_body_size 10M;
+    }
+    
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # 日志配置
+    access_log /var/log/nginx/bjzxjj-ssl-access.log;
+    error_log /var/log/nginx/bjzxjj-ssl-error.log;
+}
+

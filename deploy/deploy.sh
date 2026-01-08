@@ -372,7 +372,150 @@ EOF
 echo "已生成生产环境配置文件"
 
 # 生成Nginx配置
-cat > /etc/nginx/conf.d/bjzxjj.conf <<EOF
+NGINX_CONF="/etc/nginx/conf.d/bjzxjj.conf"
+NGINX_TEMPLATE="${SCRIPT_DIR}/nginx.conf.template"
+
+# 自动检测证书文件（如果未配置或文件不存在）
+CERT_DIR="${PROJECT_HOME}/cert"
+NEED_AUTO_DETECT=false
+
+# 检查是否需要自动检测
+if [ -z "${SSL_CERT_PATH}" ] || [ -z "${SSL_KEY_PATH}" ]; then
+    NEED_AUTO_DETECT=true
+    echo -e "${YELLOW}证书路径未配置，将尝试自动检测...${NC}"
+elif [ ! -f "${SSL_CERT_PATH}" ] || [ ! -f "${SSL_KEY_PATH}" ]; then
+    NEED_AUTO_DETECT=true
+    echo -e "${YELLOW}配置的证书文件不存在，将尝试自动检测...${NC}"
+    echo -e "${YELLOW}  配置的证书路径: ${SSL_CERT_PATH}${NC}"
+    echo -e "${YELLOW}  配置的私钥路径: ${SSL_KEY_PATH}${NC}"
+fi
+
+if [ "${NEED_AUTO_DETECT}" = true ]; then
+    echo -e "${YELLOW}正在自动检测证书文件...${NC}"
+    if [ -d "${CERT_DIR}" ]; then
+        # 常见的证书文件命名模式
+        CERT_PATTERNS=(
+            "*.crt" "*.pem" "*.cer" "fullchain.pem" "certificate.crt" "domain.crt" "server.crt"
+        )
+        KEY_PATTERNS=(
+            "*.key" "privkey.pem" "private.key" "domain.key" "server.key"
+        )
+        
+        # 查找证书文件
+        FOUND_CERT=""
+        FOUND_KEY=""
+        
+        for pattern in "${CERT_PATTERNS[@]}"; do
+            cert_file=$(find "${CERT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null | head -1)
+            if [ -n "${cert_file}" ] && [ -f "${cert_file}" ]; then
+                FOUND_CERT="${cert_file}"
+                echo -e "${GREEN}找到证书文件: ${FOUND_CERT}${NC}"
+                break
+            fi
+        done
+        
+        # 查找私钥文件
+        for pattern in "${KEY_PATTERNS[@]}"; do
+            key_file=$(find "${CERT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null | head -1)
+            if [ -n "${key_file}" ] && [ -f "${key_file}" ]; then
+                FOUND_KEY="${key_file}"
+                echo -e "${GREEN}找到私钥文件: ${FOUND_KEY}${NC}"
+                break
+            fi
+        done
+        
+        # 如果找到了证书和私钥，更新配置
+        if [ -n "${FOUND_CERT}" ] && [ -n "${FOUND_KEY}" ]; then
+            SSL_CERT_PATH="${FOUND_CERT}"
+            SSL_KEY_PATH="${FOUND_KEY}"
+            export SSL_CERT_PATH SSL_KEY_PATH
+            echo -e "${GREEN}已自动配置SSL证书路径${NC}"
+        else
+            if [ -n "${FOUND_CERT}" ] && [ -z "${FOUND_KEY}" ]; then
+                echo -e "${YELLOW}找到证书文件但未找到私钥文件${NC}"
+            elif [ -z "${FOUND_CERT}" ] && [ -n "${FOUND_KEY}" ]; then
+                echo -e "${YELLOW}找到私钥文件但未找到证书文件${NC}"
+            else
+                echo -e "${YELLOW}未在 ${CERT_DIR} 目录下找到证书文件${NC}"
+            fi
+        fi
+    else
+        echo -e "${YELLOW}证书目录 ${CERT_DIR} 不存在${NC}"
+        echo -e "${YELLOW}提示: 请将证书文件放到 ${CERT_DIR} 目录，或手动在 config.sh 中配置 SSL_CERT_PATH 和 SSL_KEY_PATH${NC}"
+    fi
+fi
+
+# 如果配置文件已存在，先备份
+if [ -f "${NGINX_CONF}" ]; then
+    BACKUP_FILE="${NGINX_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
+    echo -e "${YELLOW}检测到现有Nginx配置文件，正在备份到: ${BACKUP_FILE}${NC}"
+    cp "${NGINX_CONF}" "${BACKUP_FILE}"
+    echo -e "${GREEN}备份完成${NC}"
+fi
+
+# 如果存在模板文件，使用模板；否则使用默认配置
+if [ -f "${NGINX_TEMPLATE}" ]; then
+    echo -e "${GREEN}使用模板文件生成Nginx配置: ${NGINX_TEMPLATE}${NC}"
+    # 使用envsubst替换变量，如果命令不存在则使用sed
+    if command -v envsubst &> /dev/null; then
+        # 导出变量供envsubst使用
+        export DOMAIN DOMAIN_WWW ADMIN_DIR FRONTEND_DIR UPLOAD_DIR BACKEND_PORT SSL_CERT_PATH SSL_KEY_PATH
+        envsubst < "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
+    else
+        # 使用sed替换变量
+        sed "s|\${DOMAIN}|${DOMAIN}|g; \
+             s|\${DOMAIN_WWW}|${DOMAIN_WWW}|g; \
+             s|\${ADMIN_DIR}|${ADMIN_DIR}|g; \
+             s|\${FRONTEND_DIR}|${FRONTEND_DIR}|g; \
+             s|\${UPLOAD_DIR}|${UPLOAD_DIR}|g; \
+             s|\${BACKEND_PORT}|${BACKEND_PORT}|g; \
+             s|\${SSL_CERT_PATH}|${SSL_CERT_PATH}|g; \
+             s|\${SSL_KEY_PATH}|${SSL_KEY_PATH}|g" \
+            "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
+    fi
+    echo "已从模板生成Nginx配置文件"
+    
+    # 检查SSL证书文件是否存在
+    if [ -z "${SSL_CERT_PATH}" ] || [ -z "${SSL_KEY_PATH}" ]; then
+        echo -e "${YELLOW}警告: SSL证书路径未配置，将禁用HTTPS配置${NC}"
+        echo -e "${YELLOW}  如需启用HTTPS，请在 config.sh 中配置 SSL_CERT_PATH 和 SSL_KEY_PATH${NC}"
+        # 注释掉HTTPS server块（使用awk处理多行匹配）
+        if command -v awk &> /dev/null; then
+            awk '
+            /^server \{/ { in_https=0 }
+            /listen 443 ssl http2;/ { in_https=1 }
+            in_https { print "# " $0; if (/^}$/) in_https=0; next }
+            { print }
+            ' "${NGINX_CONF}" > "${NGINX_CONF}.tmp" && mv "${NGINX_CONF}.tmp" "${NGINX_CONF}" 2>/dev/null || true
+        fi
+        # 注释掉HTTP重定向到HTTPS的行
+        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+    elif [ ! -f "${SSL_CERT_PATH}" ] || [ ! -f "${SSL_KEY_PATH}" ]; then
+        echo -e "${YELLOW}警告: SSL证书文件不存在，将禁用HTTPS配置${NC}"
+        echo -e "${YELLOW}  证书文件: ${SSL_CERT_PATH}${NC}"
+        echo -e "${YELLOW}  私钥文件: ${SSL_KEY_PATH}${NC}"
+        echo -e "${YELLOW}  请确保证书文件存在，或修改 config.sh 中的 SSL_CERT_PATH 和 SSL_KEY_PATH${NC}"
+        # 注释掉HTTPS server块
+        if command -v awk &> /dev/null; then
+            awk '
+            /^server \{/ { in_https=0 }
+            /listen 443 ssl http2;/ { in_https=1 }
+            in_https { print "# " $0; if (/^}$/) in_https=0; next }
+            { print }
+            ' "${NGINX_CONF}" > "${NGINX_CONF}.tmp" && mv "${NGINX_CONF}.tmp" "${NGINX_CONF}" 2>/dev/null || true
+        fi
+        # 注释掉HTTP重定向到HTTPS的行
+        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+    else
+        echo -e "${GREEN}检测到SSL证书文件，已启用HTTPS配置${NC}"
+        echo -e "${GREEN}  证书文件: ${SSL_CERT_PATH}${NC}"
+        echo -e "${GREEN}  私钥文件: ${SSL_KEY_PATH}${NC}"
+        # 启用HTTP重定向到HTTPS（取消注释）
+        sed -i 's/^\([[:space:]]*\)# return 301 https:/\1return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+    fi
+else
+    # 使用默认配置生成
+    cat > "${NGINX_CONF}" <<EOF
 # 北京中兴建机职业技能鉴定中心网站 - Nginx配置
 
 # 前端配置
@@ -443,8 +586,11 @@ server {
     error_log /var/log/nginx/bjzxjj-error.log;
 }
 EOF
+    echo "已生成默认Nginx配置文件"
+fi
 
-echo "已生成Nginx配置文件"
+echo -e "${GREEN}Nginx配置文件位置: ${NGINX_CONF}${NC}"
+echo -e "${YELLOW}提示: 如需自定义配置，请创建模板文件: ${NGINX_TEMPLATE}${NC}"
 
 # 测试Nginx配置
 nginx -t

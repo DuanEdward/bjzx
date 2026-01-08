@@ -29,6 +29,18 @@ BACKEND_PORT="8080"     # 后端服务端口
 JVM_XMS="512m"          # JVM初始堆内存
 JVM_XMX="1024m"         # JVM最大堆内存
 
+# SSL证书配置（可选，如果配置了证书路径则启用HTTPS）
+# 证书文件路径（支持 .crt/.pem 格式）
+# 如果留空，部署脚本会自动在 ${PROJECT_HOME}/cert 目录下查找证书文件
+# 支持的证书文件名：*.crt, *.pem, fullchain.pem, certificate.crt, domain.crt, server.crt 等
+# 支持的私钥文件名：*.key, privkey.pem, private.key, domain.key, server.key 等
+SSL_CERT_PATH=""  # 证书文件路径，留空则自动检测
+SSL_KEY_PATH=""   # 私钥文件路径，留空则自动检测
+# 如果使用 Let's Encrypt，可以手动指定路径：
+# SSL_CERT_PATH="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
+# SSL_KEY_PATH="/etc/letsencrypt/live/${DOMAIN}/privkey.pem"
+# 或者将证书复制到 ${PROJECT_HOME}/cert 目录，脚本会自动检测
+
 # ============================================
 # 以下为自动计算的路径，无需修改
 # ============================================
@@ -57,6 +69,8 @@ export JWT_SECRET
 export BACKEND_PORT
 export JVM_XMS
 export JVM_XMX
+export SSL_CERT_PATH
+export SSL_KEY_PATH
 export PROJECT_SOURCE_DIR
 export DEPLOY_DIR
 export BACKEND_DIR
