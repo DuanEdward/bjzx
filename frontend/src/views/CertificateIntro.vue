@@ -90,32 +90,32 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheck, Search } from '@element-plus/icons-vue'
+import { CircleCheck, Search, Document } from '@element-plus/icons-vue'
 
 // 证书类型
 const certificateTypes = [
   {
     name: '营业执照',
     description: '企业法人营业执照，证明企业合法经营资格',
-    icon: 'Document',
+    icon: Document,
     color: '#409EFF'
   },
   {
     name: '组织机构代码证',
     description: '组织机构代码证，用于标识组织机构',
-    icon: 'Document',
+    icon: Document,
     color: '#67C23A'
   },
   {
     name: '税务登记证',
     description: '税务登记证，用于税务管理',
-    icon: 'Document',
+    icon: Document,
     color: '#E6A23C'
   },
   {
     name: '其他证件',
     description: '其他各类有效证件',
-    icon: 'Document',
+    icon: Document,
     color: '#909399'
   }
 ]
