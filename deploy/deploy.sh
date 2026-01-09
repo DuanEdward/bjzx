@@ -392,7 +392,13 @@ fi
 
 if [ "${NEED_AUTO_DETECT}" = true ]; then
     echo -e "${YELLOW}正在自动检测证书文件...${NC}"
+    echo -e "${YELLOW}检测目录: ${CERT_DIR}${NC}"
     if [ -d "${CERT_DIR}" ]; then
+        echo -e "${GREEN}证书目录存在${NC}"
+        # 列出目录中的所有文件（用于调试）
+        echo -e "${YELLOW}目录中的文件:${NC}"
+        ls -la "${CERT_DIR}" 2>/dev/null || echo "无法列出目录内容"
+        
         # 常见的证书文件命名模式
         CERT_PATTERNS=(
             "*.crt" "*.pem" "*.cer" "fullchain.pem" "certificate.crt" "domain.crt" "server.crt"
@@ -405,6 +411,7 @@ if [ "${NEED_AUTO_DETECT}" = true ]; then
         FOUND_CERT=""
         FOUND_KEY=""
         
+        echo -e "${YELLOW}正在查找证书文件...${NC}"
         for pattern in "${CERT_PATTERNS[@]}"; do
             cert_file=$(find "${CERT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null | head -1)
             if [ -n "${cert_file}" ] && [ -f "${cert_file}" ]; then
@@ -415,6 +422,7 @@ if [ "${NEED_AUTO_DETECT}" = true ]; then
         done
         
         # 查找私钥文件
+        echo -e "${YELLOW}正在查找私钥文件...${NC}"
         for pattern in "${KEY_PATTERNS[@]}"; do
             key_file=$(find "${CERT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null | head -1)
             if [ -n "${key_file}" ] && [ -f "${key_file}" ]; then
@@ -430,18 +438,29 @@ if [ "${NEED_AUTO_DETECT}" = true ]; then
             SSL_KEY_PATH="${FOUND_KEY}"
             export SSL_CERT_PATH SSL_KEY_PATH
             echo -e "${GREEN}已自动配置SSL证书路径${NC}"
+            echo -e "${GREEN}  证书文件: ${SSL_CERT_PATH}${NC}"
+            echo -e "${GREEN}  私钥文件: ${SSL_KEY_PATH}${NC}"
         else
             if [ -n "${FOUND_CERT}" ] && [ -z "${FOUND_KEY}" ]; then
                 echo -e "${YELLOW}找到证书文件但未找到私钥文件${NC}"
+                echo -e "${YELLOW}  证书文件: ${FOUND_CERT}${NC}"
+                echo -e "${YELLOW}  请确保证书目录中包含 .key 文件${NC}"
             elif [ -z "${FOUND_CERT}" ] && [ -n "${FOUND_KEY}" ]; then
                 echo -e "${YELLOW}找到私钥文件但未找到证书文件${NC}"
+                echo -e "${YELLOW}  私钥文件: ${FOUND_KEY}${NC}"
+                echo -e "${YELLOW}  请确保证书目录中包含 .crt 或 .pem 文件${NC}"
             else
                 echo -e "${YELLOW}未在 ${CERT_DIR} 目录下找到证书文件${NC}"
+                echo -e "${YELLOW}支持的证书文件名: *.crt, *.pem, *.cer, fullchain.pem 等${NC}"
+                echo -e "${YELLOW}支持的私钥文件名: *.key, privkey.pem, private.key 等${NC}"
             fi
         fi
     else
         echo -e "${YELLOW}证书目录 ${CERT_DIR} 不存在${NC}"
         echo -e "${YELLOW}提示: 请将证书文件放到 ${CERT_DIR} 目录，或手动在 config.sh 中配置 SSL_CERT_PATH 和 SSL_KEY_PATH${NC}"
+        echo -e "${YELLOW}可以执行以下命令创建目录并上传证书:${NC}"
+        echo -e "${YELLOW}  mkdir -p ${CERT_DIR}${NC}"
+        echo -e "${YELLOW}  # 然后将证书文件复制到该目录${NC}"
     fi
 fi
 
@@ -456,27 +475,44 @@ fi
 # 如果存在模板文件，使用模板；否则使用默认配置
 if [ -f "${NGINX_TEMPLATE}" ]; then
     echo -e "${GREEN}使用模板文件生成Nginx配置: ${NGINX_TEMPLATE}${NC}"
+    
+    # 为sed替换准备变量，确保空值不会导致配置错误
+    # 如果证书路径为空，使用占位符，后续会注释掉HTTPS配置
+    SSL_CERT_PLACEHOLDER="${SSL_CERT_PATH:-/dev/null}"
+    SSL_KEY_PLACEHOLDER="${SSL_KEY_PATH:-/dev/null}"
+    
     # 使用envsubst替换变量，如果命令不存在则使用sed
     if command -v envsubst &> /dev/null; then
         # 导出变量供envsubst使用
-        export DOMAIN DOMAIN_WWW ADMIN_DIR FRONTEND_DIR UPLOAD_DIR BACKEND_PORT SSL_CERT_PATH SSL_KEY_PATH
+        export DOMAIN DOMAIN_WWW ADMIN_DIR FRONTEND_DIR UPLOAD_DIR BACKEND_PORT
+        export SSL_CERT_PATH="${SSL_CERT_PLACEHOLDER}"
+        export SSL_KEY_PATH="${SSL_KEY_PLACEHOLDER}"
         envsubst < "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
     else
-        # 使用sed替换变量
+        # 使用sed替换变量，转义特殊字符
+        # 转义路径中的特殊字符
+        ADMIN_DIR_ESC=$(echo "${ADMIN_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+        FRONTEND_DIR_ESC=$(echo "${FRONTEND_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+        UPLOAD_DIR_ESC=$(echo "${UPLOAD_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+        SSL_CERT_ESC=$(echo "${SSL_CERT_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+        SSL_KEY_ESC=$(echo "${SSL_KEY_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+        
         sed "s|\${DOMAIN}|${DOMAIN}|g; \
              s|\${DOMAIN_WWW}|${DOMAIN_WWW}|g; \
-             s|\${ADMIN_DIR}|${ADMIN_DIR}|g; \
-             s|\${FRONTEND_DIR}|${FRONTEND_DIR}|g; \
-             s|\${UPLOAD_DIR}|${UPLOAD_DIR}|g; \
+             s|\${ADMIN_DIR}|${ADMIN_DIR_ESC}|g; \
+             s|\${FRONTEND_DIR}|${FRONTEND_DIR_ESC}|g; \
+             s|\${UPLOAD_DIR}|${UPLOAD_DIR_ESC}|g; \
              s|\${BACKEND_PORT}|${BACKEND_PORT}|g; \
-             s|\${SSL_CERT_PATH}|${SSL_CERT_PATH}|g; \
-             s|\${SSL_KEY_PATH}|${SSL_KEY_PATH}|g" \
+             s|\${SSL_CERT_PATH}|${SSL_CERT_ESC}|g; \
+             s|\${SSL_KEY_PATH}|${SSL_KEY_ESC}|g" \
             "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
     fi
     echo "已从模板生成Nginx配置文件"
     
     # 检查SSL证书文件是否存在
-    if [ -z "${SSL_CERT_PATH}" ] || [ -z "${SSL_KEY_PATH}" ]; then
+    # 如果使用的是占位符 /dev/null，说明证书未配置
+    if [ -z "${SSL_CERT_PATH}" ] || [ -z "${SSL_KEY_PATH}" ] || \
+       [ "${SSL_CERT_PATH}" = "/dev/null" ] || [ "${SSL_KEY_PATH}" = "/dev/null" ]; then
         echo -e "${YELLOW}警告: SSL证书路径未配置，将禁用HTTPS配置${NC}"
         echo -e "${YELLOW}  如需启用HTTPS，请在 config.sh 中配置 SSL_CERT_PATH 和 SSL_KEY_PATH${NC}"
         # 注释掉HTTPS server块（使用awk处理多行匹配）
@@ -490,6 +526,9 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
         fi
         # 注释掉HTTP重定向到HTTPS的行
         sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+        # 清理占位符，确保配置文件中没有无效的证书路径
+        sed -i 's|ssl_certificate /dev/null;|# ssl_certificate /dev/null;|g' "${NGINX_CONF}" 2>/dev/null || true
+        sed -i 's|ssl_certificate_key /dev/null;|# ssl_certificate_key /dev/null;|g' "${NGINX_CONF}" 2>/dev/null || true
     elif [ ! -f "${SSL_CERT_PATH}" ] || [ ! -f "${SSL_KEY_PATH}" ]; then
         echo -e "${YELLOW}警告: SSL证书文件不存在，将禁用HTTPS配置${NC}"
         echo -e "${YELLOW}  证书文件: ${SSL_CERT_PATH}${NC}"
@@ -512,6 +551,20 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
         echo -e "${GREEN}  私钥文件: ${SSL_KEY_PATH}${NC}"
         # 启用HTTP重定向到HTTPS（取消注释）
         sed -i 's/^\([[:space:]]*\)# return 301 https:/\1return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+    fi
+    
+    # 验证Nginx配置语法
+    echo -e "${YELLOW}正在验证Nginx配置语法...${NC}"
+    if command -v nginx &> /dev/null; then
+        if nginx -t -c /etc/nginx/nginx.conf 2>&1 | grep -q "successful"; then
+            echo -e "${GREEN}Nginx配置语法验证通过${NC}"
+        else
+            echo -e "${RED}警告: Nginx配置语法验证失败！${NC}"
+            echo -e "${YELLOW}请检查配置文件: ${NGINX_CONF}${NC}"
+            nginx -t -c /etc/nginx/nginx.conf 2>&1 | head -20
+        fi
+    else
+        echo -e "${YELLOW}未找到nginx命令，跳过配置验证${NC}"
     fi
 else
     # 使用默认配置生成
