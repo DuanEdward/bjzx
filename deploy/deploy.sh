@@ -481,32 +481,24 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
     SSL_CERT_PLACEHOLDER="${SSL_CERT_PATH:-/dev/null}"
     SSL_KEY_PLACEHOLDER="${SSL_KEY_PATH:-/dev/null}"
     
-    # 使用envsubst替换变量，如果命令不存在则使用sed
-    if command -v envsubst &> /dev/null; then
-        # 导出变量供envsubst使用
-        export DOMAIN DOMAIN_WWW ADMIN_DIR FRONTEND_DIR UPLOAD_DIR BACKEND_PORT
-        export SSL_CERT_PATH="${SSL_CERT_PLACEHOLDER}"
-        export SSL_KEY_PATH="${SSL_KEY_PLACEHOLDER}"
-        envsubst < "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
-    else
-        # 使用sed替换变量，转义特殊字符
-        # 转义路径中的特殊字符
-        ADMIN_DIR_ESC=$(echo "${ADMIN_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
-        FRONTEND_DIR_ESC=$(echo "${FRONTEND_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
-        UPLOAD_DIR_ESC=$(echo "${UPLOAD_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
-        SSL_CERT_ESC=$(echo "${SSL_CERT_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
-        SSL_KEY_ESC=$(echo "${SSL_KEY_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
-        
-        sed "s|\${DOMAIN}|${DOMAIN}|g; \
-             s|\${DOMAIN_WWW}|${DOMAIN_WWW}|g; \
-             s|\${ADMIN_DIR}|${ADMIN_DIR_ESC}|g; \
-             s|\${FRONTEND_DIR}|${FRONTEND_DIR_ESC}|g; \
-             s|\${UPLOAD_DIR}|${UPLOAD_DIR_ESC}|g; \
-             s|\${BACKEND_PORT}|${BACKEND_PORT}|g; \
-             s|\${SSL_CERT_PATH}|${SSL_CERT_ESC}|g; \
-             s|\${SSL_KEY_PATH}|${SSL_KEY_ESC}|g" \
-            "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
-    fi
+    # 使用sed替换变量（只替换${VAR}格式，保留Nginx的$var变量）
+    # 转义路径中的特殊字符
+    ADMIN_DIR_ESC=$(echo "${ADMIN_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    FRONTEND_DIR_ESC=$(echo "${FRONTEND_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    UPLOAD_DIR_ESC=$(echo "${UPLOAD_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    SSL_CERT_ESC=$(echo "${SSL_CERT_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    SSL_KEY_ESC=$(echo "${SSL_KEY_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    
+    # 只替换 ${VAR} 格式的变量，不替换 $var 格式的Nginx变量
+    sed "s|\${DOMAIN}|${DOMAIN}|g; \
+         s|\${DOMAIN_WWW}|${DOMAIN_WWW}|g; \
+         s|\${ADMIN_DIR}|${ADMIN_DIR_ESC}|g; \
+         s|\${FRONTEND_DIR}|${FRONTEND_DIR_ESC}|g; \
+         s|\${UPLOAD_DIR}|${UPLOAD_DIR_ESC}|g; \
+         s|\${BACKEND_PORT}|${BACKEND_PORT}|g; \
+         s|\${SSL_CERT_PATH}|${SSL_CERT_ESC}|g; \
+         s|\${SSL_KEY_PATH}|${SSL_KEY_ESC}|g" \
+        "${NGINX_TEMPLATE}" > "${NGINX_CONF}"
     echo "已从模板生成Nginx配置文件"
     
     # 检查SSL证书文件是否存在
@@ -525,7 +517,9 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
             ' "${NGINX_CONF}" > "${NGINX_CONF}.tmp" && mv "${NGINX_CONF}.tmp" "${NGINX_CONF}" 2>/dev/null || true
         fi
         # 注释掉HTTP重定向到HTTPS的行
-        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+        sed -i 's/^\([[:space:]]*\)return 301 https:\/\/\$server_name\$request_uri;/\1# return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
+        # 如果上面的替换没有匹配到，尝试匹配不带完整URL的版本
+        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
         # 清理占位符，确保配置文件中没有无效的证书路径
         sed -i 's|ssl_certificate /dev/null;|# ssl_certificate /dev/null;|g' "${NGINX_CONF}" 2>/dev/null || true
         sed -i 's|ssl_certificate_key /dev/null;|# ssl_certificate_key /dev/null;|g' "${NGINX_CONF}" 2>/dev/null || true
@@ -544,13 +538,17 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
             ' "${NGINX_CONF}" > "${NGINX_CONF}.tmp" && mv "${NGINX_CONF}.tmp" "${NGINX_CONF}" 2>/dev/null || true
         fi
         # 注释掉HTTP重定向到HTTPS的行
-        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+        sed -i 's/^\([[:space:]]*\)return 301 https:\/\/\$server_name\$request_uri;/\1# return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
+        # 如果上面的替换没有匹配到，尝试匹配不带完整URL的版本
+        sed -i 's/^\([[:space:]]*\)return 301 https:/\1# return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
     else
         echo -e "${GREEN}检测到SSL证书文件，已启用HTTPS配置${NC}"
         echo -e "${GREEN}  证书文件: ${SSL_CERT_PATH}${NC}"
         echo -e "${GREEN}  私钥文件: ${SSL_KEY_PATH}${NC}"
         # 启用HTTP重定向到HTTPS（取消注释）
-        sed -i 's/^\([[:space:]]*\)# return 301 https:/\1return 301 https:/' "${NGINX_CONF}" 2>/dev/null || true
+        sed -i 's/^\([[:space:]]*\)# return 301 https:\/\/\$server_name\$request_uri;/\1return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
+        # 如果上面的替换没有匹配到，尝试匹配不带完整URL的版本
+        sed -i 's/^\([[:space:]]*\)# return 301 https:/\1return 301 https:\/\/$server_name$request_uri;/' "${NGINX_CONF}" 2>/dev/null || true
     fi
     
     # 验证Nginx配置语法
