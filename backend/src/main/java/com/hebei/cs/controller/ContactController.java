@@ -48,7 +48,13 @@ public class ContactController {
         }
         wrapper.orderByDesc(Contact::getCreatedAt);
         Page<Contact> result = contactService.page(page, wrapper);
-        return Result.success(new PageResult<>(result.getRecords(), result.getTotal()));
+        PageResult<Contact> pageResult = new PageResult<>(
+                result.getRecords(),
+                result.getTotal(),
+                result.getCurrent(),
+                result.getSize()
+        );
+        return Result.success(pageResult);
     }
 
     /**

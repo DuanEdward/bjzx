@@ -9,8 +9,6 @@ import com.hebei.cs.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * 投诉反馈控制器
  *
@@ -50,7 +48,13 @@ public class FeedbackController {
         }
         wrapper.orderByDesc(Feedback::getCreatedAt);
         Page<Feedback> result = feedbackService.page(page, wrapper);
-        return Result.success(new PageResult<>(result.getRecords(), result.getTotal()));
+        PageResult<Feedback> pageResult = new PageResult<>(
+                result.getRecords(),
+                result.getTotal(),
+                result.getCurrent(),
+                result.getSize()
+        );
+        return Result.success(pageResult);
     }
 
     /**
