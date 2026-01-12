@@ -3,7 +3,7 @@
     <!-- Banner轮播 -->
     <section class="banner-section">
       <div class="banner-container">
-        <img src="/pic/banner.jpg" alt="Banner" class="banner-logo">
+        <img src="/banner.jpg" alt="Banner" class="banner-logo">
         <el-carousel height="500px" :interval="4000" arrow="hover">
           <el-carousel-item v-for="banner in banners" :key="banner.id">
             <a :href="banner.link" target="_blank" v-if="banner.link">

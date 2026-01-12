@@ -78,11 +78,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { request } from '@/api'
+import request from '@/api'
 
 const route = useRoute()
 const activeIndex = computed(() => route.path)

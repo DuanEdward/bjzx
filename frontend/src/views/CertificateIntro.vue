@@ -39,7 +39,7 @@ const formatNotes = (text: string): string => {
   let html = ''
   let inList = false
   
-  lines.forEach((line, index) => {
+  lines.forEach((line) => {
     const trimmedLine = line.trim()
     
     // 空行
