@@ -3,79 +3,13 @@
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">证书说明</h1>
-        <p class="page-subtitle">了解各类证书的申请流程、使用说明和注意事项</p>
+        <p class="page-subtitle">注意事项与申明</p>
       </div>
 
       <!-- 证书说明内容 -->
       <div class="intro-content">
         <el-card class="intro-card">
-          <template #header>
-            <div class="card-header">
-              <h2>证书类型</h2>
-            </div>
-          </template>
-          <div class="certificate-types">
-            <div class="type-item" v-for="type in certificateTypes" :key="type.name">
-              <el-icon :size="40" :color="type.color"><component :is="type.icon" /></el-icon>
-              <h3>{{ type.name }}</h3>
-              <p>{{ type.description }}</p>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="intro-card">
-          <template #header>
-            <div class="card-header">
-              <h2>申请流程</h2>
-            </div>
-          </template>
-          <el-steps :active="0" direction="vertical" class="steps">
-            <el-step
-              v-for="(step, index) in applicationSteps"
-              :key="index"
-              :title="step.title"
-              :description="step.description"
-            />
-          </el-steps>
-        </el-card>
-
-        <el-card class="intro-card">
-          <template #header>
-            <div class="card-header">
-              <h2>使用说明</h2>
-            </div>
-          </template>
-          <div class="usage-instructions">
-            <div class="instruction-item" v-for="(instruction, index) in usageInstructions" :key="index">
-              <el-icon class="instruction-icon"><CircleCheck /></el-icon>
-              <div class="instruction-content">
-                <h4>{{ instruction.title }}</h4>
-                <p>{{ instruction.content }}</p>
-              </div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card class="intro-card">
-          <template #header>
-            <div class="card-header">
-              <h2>注意事项</h2>
-            </div>
-          </template>
-          <div class="notices">
-            <el-alert
-              v-for="(notice, index) in importantNotices"
-              :key="index"
-              :title="notice.title"
-              :type="notice.type"
-              :closable="false"
-              class="notice-alert"
-            >
-              <template #default>
-                <p>{{ notice.content }}</p>
-              </template>
-            </el-alert>
-          </div>
+          <div class="notes-content" v-html="formattedNotes"></div>
         </el-card>
 
         <div class="action-buttons">
@@ -90,94 +24,91 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheck, Search, Document } from '@element-plus/icons-vue'
+import { ref, onMounted } from 'vue'
+import { Search } from '@element-plus/icons-vue'
 
-// 证书类型
-const certificateTypes = [
-  {
-    name: '营业执照',
-    description: '企业法人营业执照，证明企业合法经营资格',
-    icon: Document,
-    color: '#409EFF'
-  },
-  {
-    name: '组织机构代码证',
-    description: '组织机构代码证，用于标识组织机构',
-    icon: Document,
-    color: '#67C23A'
-  },
-  {
-    name: '税务登记证',
-    description: '税务登记证，用于税务管理',
-    icon: Document,
-    color: '#E6A23C'
-  },
-  {
-    name: '其他证件',
-    description: '其他各类有效证件',
-    icon: Document,
-    color: '#909399'
-  }
-]
+const notesContent = ref('')
+const formattedNotes = ref('')
 
-// 申请流程
-const applicationSteps = [
-  {
-    title: '准备材料',
-    description: '准备相关申请材料，包括身份证明、申请表等'
-  },
-  {
-    title: '提交申请',
-    description: '在线或线下提交证书申请'
-  },
-  {
-    title: '审核处理',
-    description: '相关部门审核申请材料'
-  },
-  {
-    title: '领取证书',
-    description: '审核通过后领取证书'
+// 格式化文本内容，保证观赏性
+const formatNotes = (text: string): string => {
+  if (!text) return ''
+  
+  // 将文本按行分割
+  const lines = text.split('\n')
+  let html = ''
+  let inList = false
+  
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim()
+    
+    // 空行
+    if (!trimmedLine) {
+      if (inList) {
+        html += '</ul>'
+        inList = false
+      }
+      html += '<br>'
+      return
+    }
+    
+    // 标题行（以数字开头，如 "1、"）
+    if (/^\d+[、.]/.test(trimmedLine)) {
+      if (inList) {
+        html += '</ul>'
+        inList = false
+      }
+      html += `<h3 class="notes-title">${trimmedLine}</h3>`
+      return
+    }
+    
+    // 列表项（以 "①"、"②" 等开头）
+    if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(trimmedLine)) {
+      if (!inList) {
+        html += '<ul class="notes-list">'
+        inList = true
+      }
+      html += `<li>${trimmedLine}</li>`
+      return
+    }
+    
+    // 普通段落
+    if (inList) {
+      html += '</ul>'
+      inList = false
+    }
+    
+    // 检查是否是重要段落（包含特定关键词）
+    if (trimmedLine.includes('不能替代') || trimmedLine.includes('注意事项') || trimmedLine.includes('申明')) {
+      html += `<p class="notes-important">${trimmedLine}</p>`
+    } else {
+      html += `<p class="notes-paragraph">${trimmedLine}</p>`
+    }
+  })
+  
+  if (inList) {
+    html += '</ul>'
   }
-]
+  
+  return html
+}
 
-// 使用说明
-const usageInstructions = [
-  {
-    title: '证书查询',
-    content: '可通过证书编号、持有人姓名等信息查询证书状态和详细信息'
-  },
-  {
-    title: '证书验证',
-    content: '证书信息已通过相关部门审核，确保真实有效'
-  },
-  {
-    title: '有效期管理',
-    content: '请关注证书有效期，及时办理续期手续'
-  },
-  {
-    title: '信息更新',
-    content: '如证书信息有变更，请及时联系相关部门更新'
+// 加载notes文件内容
+onMounted(async () => {
+  try {
+    const response = await fetch('/docs/notes')
+    if (response.ok) {
+      notesContent.value = await response.text()
+      formattedNotes.value = formatNotes(notesContent.value)
+    } else {
+      // 如果文件不存在，使用默认内容
+      formattedNotes.value = '<p>内容加载中...</p>'
+    }
+  } catch (error) {
+    console.error('加载证书说明内容失败:', error)
+    formattedNotes.value = '<p>内容加载失败，请稍后重试</p>'
   }
-]
-
-// 注意事项
-const importantNotices = [
-  {
-    title: '证书有效期',
-    content: '请注意证书的有效期，过期证书将无法使用。建议在有效期到期前30天办理续期手续。',
-    type: 'warning' as const
-  },
-  {
-    title: '信息真实性',
-    content: '所有证书信息均经过严格审核，确保真实有效。如有疑问，请联系相关部门核实。',
-    type: 'info' as const
-  },
-  {
-    title: '证书保管',
-    content: '请妥善保管证书，避免丢失或损坏。如证书遗失，请及时联系相关部门补办。',
-    type: 'success' as const
-  }
-]
+})
 </script>
 
 <style lang="scss" scoped>
@@ -208,103 +139,7 @@ const importantNotices = [
 
     .intro-card {
       margin-bottom: 30px;
-
-      .card-header {
-        h2 {
-          font-size: 20px;
-          font-weight: 500;
-          color: var(--text-primary);
-          margin: 0;
-        }
-      }
-    }
-
-    .certificate-types {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 30px;
-      padding: 20px 0;
-
-      .type-item {
-        text-align: center;
-        padding: 20px;
-        background: var(--background-base);
-        border-radius: 8px;
-        transition: all 0.3s;
-
-        &:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .el-icon {
-          margin-bottom: 15px;
-        }
-
-        h3 {
-          font-size: 18px;
-          font-weight: 500;
-          color: var(--text-primary);
-          margin-bottom: 10px;
-        }
-
-        p {
-          font-size: 14px;
-          color: var(--text-regular);
-          line-height: 1.6;
-        }
-      }
-    }
-
-    .steps {
-      padding: 20px 0;
-    }
-
-    .usage-instructions {
-      .instruction-item {
-        display: flex;
-        gap: 15px;
-        padding: 20px;
-        margin-bottom: 15px;
-        background: var(--background-base);
-        border-radius: 8px;
-
-        .instruction-icon {
-          font-size: 24px;
-          color: var(--primary-color);
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-
-        .instruction-content {
-          flex: 1;
-
-          h4 {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-          }
-
-          p {
-            font-size: 14px;
-            color: var(--text-regular);
-            line-height: 1.6;
-            margin: 0;
-          }
-        }
-      }
-    }
-
-    .notices {
-      .notice-alert {
-        margin-bottom: 15px;
-
-        p {
-          margin: 0;
-          line-height: 1.6;
-        }
-      }
+      padding: 30px;
     }
 
     .action-buttons {
@@ -314,14 +149,68 @@ const importantNotices = [
   }
 }
 
+// 文本内容样式（使用深度选择器，因为内容是动态HTML）
+:deep(.notes-content) {
+  font-size: 16px;
+  line-height: 2;
+  color: var(--text-primary);
+
+  .notes-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 30px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+  }
+
+  .notes-paragraph {
+    margin: 15px 0;
+    text-indent: 2em;
+    line-height: 2;
+  }
+
+  .notes-important {
+    margin: 20px 0;
+    padding: 15px 20px;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    font-weight: 500;
+    line-height: 2;
+  }
+
+  .notes-list {
+    margin: 15px 0;
+    padding-left: 30px;
+
+    li {
+      margin: 10px 0;
+      line-height: 2;
+    }
+  }
+
+  br {
+    margin: 10px 0;
+  }
+}
+
 @media (max-width: 768px) {
   .certificate-intro-page {
     padding: 20px 0;
 
     .intro-content {
-      .certificate-types {
-        grid-template-columns: 1fr;
+      .intro-card {
+        padding: 20px;
       }
+    }
+  }
+
+  :deep(.notes-content) {
+    font-size: 14px;
+
+    .notes-title {
+      font-size: 18px;
     }
   }
 }

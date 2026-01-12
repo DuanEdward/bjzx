@@ -22,13 +22,6 @@
           <p><el-icon><Phone /></el-icon> 010-xxxxxxxx</p>
           <p><el-icon><Message /></el-icon> contact@bjzxjj.org.cn</p>
         </div>
-        <div class="footer-section">
-          <h4>关注我们</h4>
-          <div class="qrcode">
-            <!-- <img src="@/assets/images/qrcode.png" alt="二维码" v-if="false"> -->
-            <p>扫码关注公众号</p>
-          </div>
-        </div>
       </div>
       <div class="footer-bottom">
         <p>&copy; {{ currentYear }} 北京中兴建机职业技能鉴定中心 版权所有</p>
@@ -53,7 +46,7 @@ const currentYear = computed(() => new Date().getFullYear())
 
   .footer-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 30px;
     margin-bottom: 30px;
   }

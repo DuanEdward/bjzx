@@ -138,6 +138,18 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Settings',
         component: () => import('@/views/system/Settings.vue'),
         meta: { title: '系统设置' }
+      },
+      {
+        path: 'feedback',
+        name: 'Feedback',
+        component: () => import('@/views/system/Feedback.vue'),
+        meta: { title: '投诉反馈' }
+      },
+      {
+        path: 'contact',
+        name: 'Contact',
+        component: () => import('@/views/system/Contact.vue'),
+        meta: { title: '联系我们' }
       }
     ]
   }

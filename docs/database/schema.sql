@@ -239,3 +239,35 @@ CREATE TABLE `system_settings` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统设置表';
+
+-- 13. 投诉反馈表
+CREATE TABLE `feedbacks` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '反馈ID',
+  `name` varchar(50) NOT NULL COMMENT '姓名',
+  `phone` varchar(20) NOT NULL COMMENT '手机号',
+  `content` text NOT NULL COMMENT '反馈内容',
+  `status` tinyint(1) DEFAULT 0 COMMENT '处理状态（0-待处理，1-处理中，2-已处理）',
+  `remark` varchar(500) DEFAULT NULL COMMENT '处理备注',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) DEFAULT 0 COMMENT '删除标记（0-未删除，1-已删除）',
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='投诉反馈表';
+
+-- 14. 联系我们表
+CREATE TABLE `contacts` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '留言ID',
+  `name` varchar(50) NOT NULL COMMENT '姓名',
+  `phone` varchar(20) NOT NULL COMMENT '手机号',
+  `message` text NOT NULL COMMENT '留言内容',
+  `status` tinyint(1) DEFAULT 0 COMMENT '处理状态（0-待处理，1-处理中，2-已处理）',
+  `remark` varchar(500) DEFAULT NULL COMMENT '处理备注',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) DEFAULT 0 COMMENT '删除标记（0-未删除，1-已删除）',
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='联系我们表';
