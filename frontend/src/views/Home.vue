@@ -3,7 +3,6 @@
     <!-- Banner轮播 -->
     <section class="banner-section">
       <div class="banner-container">
-        <img src="/banner.jpg" alt="Banner" class="banner-logo">
         <el-carousel height="500px" :interval="4000" arrow="hover">
           <el-carousel-item v-for="banner in banners" :key="banner.id">
             <a :href="banner.link" target="_blank" v-if="banner.link">
@@ -189,20 +188,6 @@ onMounted(() => {
     .banner-container {
       position: relative;
       width: 100%;
-    }
-
-    .banner-logo {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      max-width: 200px;
-      max-height: 80px;
-      object-fit: contain;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     :deep(.el-carousel__item) {

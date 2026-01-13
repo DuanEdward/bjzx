@@ -9,12 +9,14 @@
           </div>
         </div>
         <div class="header-main">
-          <div class="logo">
-            <img src="/banner.jpg" alt="Logo" class="logo-image">
-            <h1>北京中兴建机职业技能鉴定中心</h1>
+          <div class="logo-section">
+            <div class="logo">
+              <img src="/banner.jpg" alt="Logo" class="logo-image">
+              <h1>北京中兴建机职业技能鉴定中心</h1>
+            </div>
           </div>
           <nav class="nav-menu">
-            <el-menu mode="horizontal" :default-active="activeIndex" :router="true">
+            <el-menu mode="horizontal" :default-active="activeIndex" :router="true" :collapse="false">
               <el-menu-item index="/">首页</el-menu-item>
               <el-menu-item index="/news">新闻中心</el-menu-item>
               <el-menu-item index="/notice">通知公告</el-menu-item>
@@ -201,10 +203,13 @@ const submitContact = async () => {
 
   .header-main {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 90px;
+    flex-direction: column;
     padding: 10px 0;
+  }
+
+  .logo-section {
+    width: 100%;
+    margin-bottom: 10px;
   }
 
   .logo {
@@ -213,34 +218,42 @@ const submitContact = async () => {
     gap: 15px;
 
     .logo-image {
-      height: 70px;
+      height: 60px;
       width: auto;
       object-fit: contain;
+      flex-shrink: 0;
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 500;
       color: var(--text-primary);
       margin: 0;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-all;
+      line-height: 1.4;
     }
   }
 
   .nav-menu {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
 
     :deep(.el-menu) {
       border-bottom: none;
       background: transparent;
+      display: flex;
+      flex-wrap: nowrap;
+      min-width: max-content;
 
       .el-menu-item {
-        font-size: 16px;
-        height: 70px;
-        line-height: 70px;
-        padding: 0 20px;
+        font-size: 15px;
+        height: 50px;
+        line-height: 50px;
+        padding: 0 15px;
+        white-space: nowrap;
+        flex-shrink: 0;
 
         &:hover {
           background-color: var(--background-base);
@@ -249,6 +262,25 @@ const submitContact = async () => {
         &.is-active {
           color: var(--primary-color);
           border-bottom-color: var(--primary-color);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .app-header {
+    .logo {
+      h1 {
+        font-size: 20px;
+      }
+    }
+
+    .nav-menu {
+      :deep(.el-menu) {
+        .el-menu-item {
+          font-size: 14px;
+          padding: 0 12px;
         }
       }
     }
@@ -269,10 +301,11 @@ const submitContact = async () => {
     }
 
     .header-main {
-      height: auto;
-      flex-direction: column;
-      padding: 10px 0;
-      gap: 15px;
+      padding: 8px 0;
+    }
+
+    .logo-section {
+      margin-bottom: 8px;
     }
 
     .logo {
@@ -289,12 +322,11 @@ const submitContact = async () => {
       width: 100%;
 
       :deep(.el-menu) {
-        justify-content: center;
-
         .el-menu-item {
-          font-size: 14px;
-          height: 40px;
-          line-height: 40px;
+          font-size: 13px;
+          height: 45px;
+          line-height: 45px;
+          padding: 0 10px;
         }
       }
     }
