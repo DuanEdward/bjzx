@@ -87,12 +87,12 @@
               <h3>学习考试</h3>
               <p>学习资源和考试信息</p>
             </div>
-            <div class="link-card" @click="$router.push('/certificate-intro')">
+            <div class="link-card" @click="$router.push('/certificate/intro')">
               <el-icon size="60"><InfoFilled /></el-icon>
               <h3>证书说明</h3>
               <p>了解证书相关信息</p>
             </div>
-            <div class="link-card" @click="$router.push('/certificate-query')">
+            <div class="link-card" @click="$router.push('/certificate/query')">
               <el-icon size="60"><Search /></el-icon>
               <h3>证书查询</h3>
               <p>查询证书信息</p>

@@ -57,12 +57,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/NewsDetail.vue')
   },
   {
-    path: '/certificate-intro',
+    path: '/certificate/intro',
     name: 'CertificateIntro',
     component: () => import('@/views/CertificateIntro.vue')
   },
   {
-    path: '/certificate-query',
+    path: '/certificate/query',
     name: 'CertificateQuery',
     component: () => import('@/views/Certificates.vue')
   }

@@ -486,6 +486,7 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
     ADMIN_DIR_ESC=$(echo "${ADMIN_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
     FRONTEND_DIR_ESC=$(echo "${FRONTEND_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
     UPLOAD_DIR_ESC=$(echo "${UPLOAD_DIR}" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    PROJECT_HOME_ESC=$(echo "${PROJECT_HOME}" | sed 's/[[\.*^$()+?{|]/\\&/g')
     SSL_CERT_ESC=$(echo "${SSL_CERT_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
     SSL_KEY_ESC=$(echo "${SSL_KEY_PLACEHOLDER}" | sed 's/[[\.*^$()+?{|]/\\&/g')
     
@@ -495,6 +496,7 @@ if [ -f "${NGINX_TEMPLATE}" ]; then
          s|\${ADMIN_DIR}|${ADMIN_DIR_ESC}|g; \
          s|\${FRONTEND_DIR}|${FRONTEND_DIR_ESC}|g; \
          s|\${UPLOAD_DIR}|${UPLOAD_DIR_ESC}|g; \
+         s|\${PROJECT_HOME}|${PROJECT_HOME_ESC}|g; \
          s|\${BACKEND_PORT}|${BACKEND_PORT}|g; \
          s|\${SSL_CERT_PATH}|${SSL_CERT_ESC}|g; \
          s|\${SSL_KEY_PATH}|${SSL_KEY_ESC}|g" \

@@ -13,7 +13,7 @@
         </el-card>
 
         <div class="action-buttons">
-          <el-button type="primary" size="large" @click="$router.push('/certificate-query')">
+            <el-button type="primary" size="large" @click="$router.push('/certificate/query')">
             <el-icon><Search /></el-icon>
             查询证书
           </el-button>
@@ -96,13 +96,47 @@ const formatNotes = (text: string): string => {
 // 加载notes文件内容
 onMounted(async () => {
   try {
-    const response = await fetch('/docs/notes')
-    if (response.ok) {
-      notesContent.value = await response.text()
-      formattedNotes.value = formatNotes(notesContent.value)
-    } else {
-      // 如果文件不存在，使用默认内容
-      formattedNotes.value = '<p>内容加载中...</p>'
+    // 尝试从多个路径加载文件
+    const paths = ['/notes', '/docs/notes']
+    let loaded = false
+    
+    for (const path of paths) {
+      try {
+        const response = await fetch(path)
+        if (response.ok) {
+          notesContent.value = await response.text()
+          formattedNotes.value = formatNotes(notesContent.value)
+          loaded = true
+          break
+        }
+      } catch (e) {
+        continue
+      }
+    }
+    
+    if (!loaded) {
+      // 如果所有路径都失败，使用硬编码的内容
+      const defaultContent = `注意事项与申明
+
+为深入贯彻落实《国务院办公厅关于印发职业技能提升行动方案(2019—2021年)的通知》(国办发〔2019〕24号)文件精神，我中心积极响应政策号召，在本行业内开展建筑工程机械行业技能岗位测评工作，组织的工程机械技能岗位测评基于考训双方市场化自愿规则，仅限"岗位基础知识能力层面"。参加线上学习、考试合格后所颁发的测评合格证只能作为参加过相关岗位知识学习的结业证明，不是特种证件，不属于从业准入类证书，不能替代政府许可部门的特种作业资格操作证件、特种设备作业人员证件等使用。
+
+1、本中心建立了完善的在线学习系统、测评考核系统，支持学员在线学习、在线测评。通过在线学习，完成学时，测评考核合格的学员将核发本中心认证的岗位（测评）合格证书。
+
+2、本中心所颁发证书均属于专业技能岗位（测评）合格证书，非国家职业资格证书，是持证人通过专业技能岗位测评的结业证明，只能通过本中心（www.bjzxjj.org.cn）官网查询。
+
+3、本中心证书不能替代特种作业资格证，关于特种设备及特种作业除岗位能力达标外还需获得准入类从业资格证及特种作业人员操作证，如质检总局特种设备目录：桥门式、塔式、流动等类别的起重机械、施工电梯、工厂叉车岗位(详情请参阅：特种设备目录)" "住建部" 和"应急管理部"特种作业工种/特殊工种"人员，法规有行政许可与安全从业准入的资质资格的特殊规定，要求操作者参加政府安全培训，获政府部门"特种人员证书"或"特种作业操作证书"，方可进入特种行业从业。
+
+4、对于特种设备岗位，本中心证书不能替代特种作业资格证、特种设备人员证等行政许可从业准入类的资质资格证书。各相关代理机构均不得以"特种人员证书" "特种作业证书"等等国家行政部门资格证书进行虚假宣传夸大我中心证书效用。
+
+5、若代理机构有以下情况，学员可以联系所报名的学校/机构申请退款，无法联系的，学员可以联系本中心法务投诉举报，（工作日9:00-17:00），提供相关证据协助学员申请退款，拒不配合的学校/机构将停止授权代理并移交给相关司法部门追究处理其责任。
+
+①，代理机构误导介绍：介绍的证书和收到的证书不一致，或者提前故意不给学员样本确认。
+
+②，代理机构乱收费：课时费+认定测评费用加起来超过中心指导价。
+
+③，等等其它存在违规虚假宣传的情况。`
+      notesContent.value = defaultContent
+      formattedNotes.value = formatNotes(defaultContent)
     }
   } catch (error) {
     console.error('加载证书说明内容失败:', error)

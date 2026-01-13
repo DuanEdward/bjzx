@@ -2,11 +2,17 @@
   <header class="app-header">
     <div class="container">
       <div class="header-content">
-        <div class="logo">
-          <!-- <img src="@/assets/images/logo.png" alt="北京中兴建机职业技能鉴定中心" v-if="false"> -->
-          <h1>北京中兴建机职业技能鉴定中心</h1>
+        <div class="header-top">
+          <div class="header-actions">
+            <el-button type="text" size="small" @click="showFeedbackDialog = true">投诉反馈</el-button>
+            <el-button type="text" size="small" @click="showContactDialog = true">联系我们</el-button>
+          </div>
         </div>
-        <div class="header-right">
+        <div class="header-main">
+          <div class="logo">
+            <img src="/banner.jpg" alt="Logo" class="logo-image">
+            <h1>北京中兴建机职业技能鉴定中心</h1>
+          </div>
           <nav class="nav-menu">
             <el-menu mode="horizontal" :default-active="activeIndex" :router="true">
               <el-menu-item index="/">首页</el-menu-item>
@@ -15,14 +21,10 @@
               <el-menu-item index="/policy">政策法规</el-menu-item>
               <el-menu-item index="/industry">行业动态</el-menu-item>
               <el-menu-item index="/study">学习考试</el-menu-item>
-              <el-menu-item index="/certificate-intro">证书说明</el-menu-item>
-              <el-menu-item index="/certificate-query">证书查询</el-menu-item>
+              <el-menu-item index="/certificate/intro">证书说明</el-menu-item>
+              <el-menu-item index="/certificate/query">证书查询</el-menu-item>
             </el-menu>
           </nav>
-          <div class="header-actions">
-            <el-button type="text" @click="showFeedbackDialog = true">投诉反馈</el-button>
-            <el-button type="text" @click="showContactDialog = true">联系我们</el-button>
-          </div>
         </div>
       </div>
 
@@ -172,25 +174,24 @@ const submitContact = async () => {
   z-index: 1000;
 
   .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 80px;
+    width: 100%;
   }
 
-  .header-right {
+  .header-top {
     display: flex;
-    align-items: center;
-    gap: 20px;
+    justify-content: flex-end;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
   }
 
   .header-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 
     .el-button {
-      color: var(--text-primary);
-      font-size: 14px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      padding: 4px 8px;
 
       &:hover {
         color: var(--primary-color);
@@ -198,30 +199,48 @@ const submitContact = async () => {
     }
   }
 
+  .header-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 90px;
+    padding: 10px 0;
+  }
+
   .logo {
     display: flex;
     align-items: center;
+    gap: 15px;
 
-    img {
-      height: 50px;
-      margin-right: 15px;
+    .logo-image {
+      height: 70px;
+      width: auto;
+      object-fit: contain;
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 500;
       color: var(--text-primary);
+      margin: 0;
+      white-space: nowrap;
     }
   }
 
   .nav-menu {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+
     :deep(.el-menu) {
       border-bottom: none;
+      background: transparent;
 
       .el-menu-item {
         font-size: 16px;
-        height: 80px;
-        line-height: 80px;
+        height: 70px;
+        line-height: 70px;
+        padding: 0 20px;
 
         &:hover {
           background-color: var(--background-base);
@@ -238,15 +257,31 @@ const submitContact = async () => {
 
 @media (max-width: 768px) {
   .app-header {
-    .header-content {
-      height: 60px;
+    .header-top {
+      padding: 5px 0;
+    }
+
+    .header-actions {
+      .el-button {
+        font-size: 11px;
+        padding: 2px 6px;
+      }
+    }
+
+    .header-main {
+      height: auto;
       flex-direction: column;
       padding: 10px 0;
+      gap: 15px;
     }
 
     .logo {
+      .logo-image {
+        height: 50px;
+      }
+
       h1 {
-        font-size: 20px;
+        font-size: 18px;
       }
     }
 
