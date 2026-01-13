@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 2024-01-10
  */
 @RestController
-@RequestMapping("/api/contact")
+@RequestMapping("/contact")
 @RequiredArgsConstructor
 public class ContactController {
 
