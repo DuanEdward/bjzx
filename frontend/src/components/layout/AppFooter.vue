@@ -12,27 +12,24 @@
           <ul>
             <li><router-link to="/">首页</router-link></li>
             <li><router-link to="/news">新闻中心</router-link></li>
-            <li><router-link to="/activities">学术活动</router-link></li>
-            <li><router-link to="/member">会员服务</router-link></li>
+            <li><router-link to="/notice">通知公告</router-link></li>
+            <li><router-link to="/policy">政策法规</router-link></li>
+            <li><router-link to="/industry">行业动态</router-link></li>
+            <li><router-link to="/study">学习考试</router-link></li>
+            <li><router-link to="/certificate/intro">证书说明</router-link></li>
+            <li><router-link to="/certificate/query">证书查询</router-link></li>
           </ul>
-        </div>
-        <div class="footer-section">
-          <h4>联系我们</h4>
-          <p><el-icon><Location /></el-icon> 北京市</p>
-          <p><el-icon><Phone /></el-icon> 010-xxxxxxxx</p>
-          <p><el-icon><Message /></el-icon> contact@bjzxjj.org.cn</p>
         </div>
       </div>
       <div class="footer-bottom">
         <p>&copy; {{ currentYear }} 北京中兴建机职业技能鉴定中心 版权所有</p>
-        <p><a href="https://beian.miit.gov.cn" target="_blank">京ICP备xxxxxxxx号</a></p>
+        <p><a href="https://beian.miit.gov.cn" target="_blank">京ICP备2025158024号-1</a></p>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
-import { Location, Phone, Message } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 
 const currentYear = computed(() => new Date().getFullYear())
@@ -46,7 +43,7 @@ const currentYear = computed(() => new Date().getFullYear())
 
   .footer-content {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 30px;
     margin-bottom: 30px;
   }
