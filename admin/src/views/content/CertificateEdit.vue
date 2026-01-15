@@ -161,12 +161,31 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="附件路径">
-          <el-input
-            v-model="formData.attachmentPath"
-            placeholder="请输入附件路径"
-            maxlength="255"
-          />
+        <el-form-item label="附件">
+          <el-upload
+            ref="uploadRef"
+            :http-request="handleUpload"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            :limit="1"
+            :before-upload="beforeUpload"
+          >
+            <el-button type="primary">
+              <el-icon><Upload /></el-icon>
+              选择文件
+            </el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX、JPG、PNG等格式，文件大小不超过10MB
+              </div>
+            </template>
+          </el-upload>
+          <div v-if="formData.attachmentPath" class="file-preview" style="margin-top: 10px">
+            <el-link :href="formData.attachmentPath" target="_blank" type="primary">
+              <el-icon><Document /></el-icon>
+              查看附件
+            </el-link>
+          </div>
         </el-form-item>
 
         <el-form-item label="描述">
@@ -188,7 +207,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, UploadFile, UploadFiles } from 'element-plus'
+import { Upload, Document } from '@element-plus/icons-vue'
 import request from '@/api'
 
 const router = useRouter()
@@ -201,6 +221,11 @@ const certificateId = computed(() => route.params.id as string)
 
 // 保存状态
 const saving = ref(false)
+
+// 文件上传相关
+const uploadRef = ref()
+const fileList = ref<UploadFiles>([])
+const uploading = ref(false)
 
 // 表单数据
 const formData = reactive({
@@ -257,6 +282,86 @@ const formRules = {
   ]
 }
 
+// 文件上传前验证
+const beforeUpload = (file: File) => {
+  const isValidType = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+  ].includes(file.type) || 
+  file.name.endsWith('.pdf') ||
+  file.name.endsWith('.doc') ||
+  file.name.endsWith('.docx') ||
+  file.name.endsWith('.xls') ||
+  file.name.endsWith('.xlsx') ||
+  file.name.endsWith('.ppt') ||
+  file.name.endsWith('.pptx') ||
+  file.name.endsWith('.jpg') ||
+  file.name.endsWith('.jpeg') ||
+  file.name.endsWith('.png') ||
+  file.name.endsWith('.gif')
+
+  if (!isValidType) {
+    ElMessage.error('不支持的文件格式，请上传PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX、JPG、PNG等格式')
+    return false
+  }
+
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    ElMessage.error('文件大小不能超过10MB')
+    return false
+  }
+
+  return true
+}
+
+// 自定义文件上传
+const handleUpload = async (options: any) => {
+  const { file } = options
+  const uploadFormData = new FormData()
+  uploadFormData.append('file', file)
+
+  try {
+    uploading.value = true
+    const response = await request.post('/file/upload', uploadFormData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (response && response.code === 200 && response.data) {
+      formData.attachmentPath = response.data.url
+      ElMessage.success('文件上传成功')
+      // 更新文件列表显示
+      fileList.value = [{
+        name: file.name,
+        url: response.data.url,
+        status: 'success'
+      } as UploadFile]
+    } else {
+      ElMessage.error(response?.message || '文件上传失败')
+    }
+  } catch (error: any) {
+    console.error('文件上传失败:', error)
+    ElMessage.error('文件上传失败，请稍后重试')
+  } finally {
+    uploading.value = false
+  }
+}
+
+// 移除文件
+const handleRemove = () => {
+  formData.attachmentPath = ''
+  fileList.value = []
+}
+
 // 获取证件详情
 const fetchCertificateDetail = async () => {
   if (!isEdit.value || !certificateId.value) return
@@ -279,6 +384,14 @@ const fetchCertificateDetail = async () => {
       attachmentPath: certificate.attachmentPath || '',
       description: certificate.description || ''
     })
+    
+    // 如果有附件路径，设置文件列表用于显示
+    if (certificate.attachmentPath) {
+      fileList.value = [{
+        name: certificate.attachmentPath.split('/').pop() || '附件',
+        url: certificate.attachmentPath
+      } as UploadFile]
+    }
   } catch (error: any) {
     console.error('获取证件详情失败:', error)
   }

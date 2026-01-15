@@ -155,34 +155,31 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="文件URL" prop="fileUrl">
-          <el-input
-            v-model="formData.fileUrl"
-            placeholder="请输入文件URL"
-            maxlength="500"
-          />
-        </el-form-item>
-        <el-form-item label="文件名" prop="fileName">
-          <el-input
-            v-model="formData.fileName"
-            placeholder="请输入文件名"
-            maxlength="200"
-          />
-        </el-form-item>
-        <el-form-item label="文件大小">
-          <el-input-number
-            v-model="formData.fileSize"
-            :min="0"
-            placeholder="文件大小（字节）"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="文件类型">
-          <el-input
-            v-model="formData.fileType"
-            placeholder="请输入文件类型（如：pdf, doc, xls）"
-            maxlength="50"
-          />
+        <el-form-item label="文件" prop="fileUrl">
+          <el-upload
+            ref="uploadRef"
+            :http-request="handleUpload"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            :limit="1"
+            :before-upload="beforeUpload"
+          >
+            <el-button type="primary">
+              <el-icon><Plus /></el-icon>
+              选择文件
+            </el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX等格式，文件大小不超过10MB
+              </div>
+            </template>
+          </el-upload>
+          <div v-if="formData.fileUrl" class="file-preview" style="margin-top: 10px">
+            <el-link :href="formData.fileUrl" target="_blank" type="primary">
+              <el-icon><Document /></el-icon>
+              查看文件
+            </el-link>
+          </div>
         </el-form-item>
         <el-form-item label="资源描述">
           <el-input
@@ -214,8 +211,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Refresh } from '@element-plus/icons-vue'
-import type { FormInstance } from 'element-plus'
+import { Plus, Search, Refresh, Document } from '@element-plus/icons-vue'
+import type { FormInstance, UploadFile, UploadFiles } from 'element-plus'
 import request from '@/api'
 
 // 类型定义
@@ -252,6 +249,9 @@ const isEdit = ref(false)
 const currentId = ref<number | null>(null)
 
 const formRef = ref<FormInstance>()
+const uploadRef = ref()
+const fileList = ref<UploadFiles>([])
+const uploading = ref(false)
 
 // 搜索表单
 const searchForm = reactive({
@@ -284,10 +284,7 @@ const formRules = {
     { required: true, message: '请输入资源标题', trigger: 'blur' }
   ],
   fileUrl: [
-    { required: true, message: '请输入文件URL', trigger: 'blur' }
-  ],
-  fileName: [
-    { required: true, message: '请输入文件名', trigger: 'blur' }
+    { required: true, message: '请上传文件', trigger: 'change' }
   ],
   categoryId: [
     { required: true, message: '请选择分类', trigger: 'change' }
@@ -295,6 +292,87 @@ const formRules = {
   status: [
     { required: true, message: '请选择状态', trigger: 'change' }
   ]
+}
+
+// 文件上传前验证
+const beforeUpload = (file: File) => {
+  const isValidType = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ].includes(file.type) || 
+  file.name.endsWith('.pdf') ||
+  file.name.endsWith('.doc') ||
+  file.name.endsWith('.docx') ||
+  file.name.endsWith('.xls') ||
+  file.name.endsWith('.xlsx') ||
+  file.name.endsWith('.ppt') ||
+  file.name.endsWith('.pptx')
+
+  if (!isValidType) {
+    ElMessage.error('不支持的文件格式，请上传PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX等格式')
+    return false
+  }
+
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    ElMessage.error('文件大小不能超过10MB')
+    return false
+  }
+
+  return true
+}
+
+// 自定义文件上传
+const handleUpload = async (options: any) => {
+  const { file } = options
+  const uploadFormData = new FormData()
+  uploadFormData.append('file', file)
+
+  try {
+    uploading.value = true
+    const response = await request.post('/file/upload', uploadFormData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (response && response.code === 200 && response.data) {
+      formData.fileUrl = response.data.url
+      formData.fileName = response.data.filename || file.name
+      formData.fileSize = file.size
+      // 从文件名提取扩展名作为文件类型
+      const ext = file.name.split('.').pop()?.toLowerCase() || ''
+      formData.fileType = ext
+      ElMessage.success('文件上传成功')
+      // 更新文件列表显示
+      fileList.value = [{
+        name: file.name,
+        url: response.data.url,
+        status: 'success'
+      } as UploadFile]
+    } else {
+      ElMessage.error(response?.message || '文件上传失败')
+    }
+  } catch (error: any) {
+    console.error('文件上传失败:', error)
+    ElMessage.error('文件上传失败，请稍后重试')
+  } finally {
+    uploading.value = false
+  }
+}
+
+// 移除文件
+const handleRemove = () => {
+  formData.fileUrl = ''
+  formData.fileName = ''
+  formData.fileSize = 0
+  formData.fileType = ''
+  fileList.value = []
 }
 
 // 获取资源分类列表
@@ -368,6 +446,7 @@ const handleCreate = () => {
     categoryId: null,
     status: 1
   })
+  fileList.value = []
   dialogVisible.value = true
 }
 
@@ -385,6 +464,15 @@ const handleEdit = (row: Resource) => {
     categoryId: row.categoryId,
     status: row.status
   })
+  // 如果有文件URL，设置文件列表用于显示
+  if (row.fileUrl) {
+    fileList.value = [{
+      name: row.fileName || row.fileUrl.split('/').pop() || '文件',
+      url: row.fileUrl
+    } as UploadFile]
+  } else {
+    fileList.value = []
+  }
   dialogVisible.value = true
 }
 

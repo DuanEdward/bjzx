@@ -65,11 +65,22 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="封面图片">
-              <el-input
-                v-model="formData.coverImage"
-                placeholder="请输入封面图片URL"
-                maxlength="500"
-              />
+              <el-upload
+                ref="uploadRef"
+                :http-request="handleUpload"
+                :on-remove="handleRemove"
+                :file-list="fileList"
+                :limit="1"
+                :before-upload="beforeUpload"
+                list-type="picture-card"
+              >
+                <el-icon><Plus /></el-icon>
+                <template #tip>
+                  <div class="el-upload__tip">
+                    支持JPG、PNG、GIF格式，文件大小不超过10MB
+                  </div>
+                </template>
+              </el-upload>
             </el-form-item>
           </el-col>
         </el-row>
@@ -134,7 +145,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
+import type { FormInstance, UploadFile, UploadFiles } from 'element-plus'
 import request from '@/api'
 
 const router = useRouter()
@@ -142,6 +154,9 @@ const route = useRoute()
 
 const formRef = ref<FormInstance>()
 const saving = ref(false)
+const uploadRef = ref()
+const fileList = ref<UploadFiles>([])
+const uploading = ref(false)
 
 // 判断是编辑还是新增
 const isEdit = computed(() => {
@@ -214,6 +229,68 @@ const fetchCategories = async () => {
   }
 }
 
+// 文件上传前验证
+const beforeUpload = (file: File) => {
+  const isValidType = ['image/jpeg', 'image/png', 'image/gif'].includes(file.type) ||
+    file.name.endsWith('.jpg') ||
+    file.name.endsWith('.jpeg') ||
+    file.name.endsWith('.png') ||
+    file.name.endsWith('.gif')
+
+  if (!isValidType) {
+    ElMessage.error('只支持JPG、PNG、GIF格式的图片')
+    return false
+  }
+
+  const isLt10M = file.size / 1024 / 1024 < 10
+  if (!isLt10M) {
+    ElMessage.error('图片大小不能超过10MB')
+    return false
+  }
+
+  return true
+}
+
+// 自定义文件上传
+const handleUpload = async (options: any) => {
+  const { file } = options
+  const uploadFormData = new FormData()
+  uploadFormData.append('file', file)
+
+  try {
+    uploading.value = true
+    const response = await request.post('/file/upload', uploadFormData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (response && response.code === 200 && response.data) {
+      formData.coverImage = response.data.url
+      ElMessage.success('图片上传成功')
+      // 更新文件列表显示
+      fileList.value = [{
+        name: file.name,
+        url: response.data.url,
+        status: 'success'
+      } as UploadFile]
+    } else {
+      ElMessage.error(response?.message || '图片上传失败')
+    }
+  } catch (error: any) {
+    console.error('图片上传失败:', error)
+    ElMessage.error('图片上传失败，请稍后重试')
+  } finally {
+    uploading.value = false
+  }
+}
+
+// 移除文件
+const handleRemove = () => {
+  formData.coverImage = ''
+  fileList.value = []
+}
+
 // 获取新闻详情
 const fetchNewsDetail = async () => {
   if (!isEdit.value || !newsId.value) return
@@ -232,6 +309,16 @@ const fetchNewsDetail = async () => {
       isTop: news.isTop ?? 0,
       publishedAt: news.publishedAt || ''
     })
+    
+    // 如果有封面图片，设置文件列表用于显示
+    if (news.coverImage) {
+      fileList.value = [{
+        name: news.coverImage.split('/').pop() || '封面图片',
+        url: news.coverImage
+      } as UploadFile]
+    } else {
+      fileList.value = []
+    }
   } catch (error: any) {
     console.error('获取新闻详情失败:', error)
   }
