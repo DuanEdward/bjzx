@@ -112,29 +112,26 @@
                 <div class="certificate-bg">
                   <img src="/pic/bgCert.png" alt="证书背景" class="certificate-bg-image" />
                   <div class="certificate-content">
-                    <!-- 证书名称 - [20%-80%, 8%-15%] -->
-                    <div class="cert-field field-name">{{ certificate.name }}</div>
-                    
                     <!-- 证书编号 - [25%-45%, 17%-20%] -->
-                    <div class="cert-field field-number">证书编号：{{ certificate.number }}</div>
+                    <div class="cert-field field-number">{{ certificate.number }}</div>
                     
                     <!-- 持有人姓名 - [15%-35%, 25%-28%] -->
-                    <div class="cert-field field-holder">姓　　名：{{ certificate.holder }}</div>
+                    <div class="cert-field field-holder">{{ certificate.holder }}</div>
                     
                     <!-- 性别 - [15%-35%, 33%-36%] -->
-                    <div class="cert-field field-gender">性　　别：{{ certificate.gender || '' }}</div>
+                    <div class="cert-field field-gender">{{ certificate.gender || '' }}</div>
                     
                     <!-- 身份证号 - [15%-35%, 41%-44%] -->
-                    <div class="cert-field field-id-card">身份证号：{{ certificate.idCard || '' }}</div>
+                    <div class="cert-field field-id-card">{{ certificate.idCard || '' }}</div>
                     
                     <!-- 岗位名称 - [15%-35%, 49%-52%] -->
-                    <div class="cert-field field-position">岗位名称：{{ certificate.position || '' }}</div>
+                    <div class="cert-field field-position">{{ certificate.position || '' }}</div>
                     
                     <!-- 技能等级 - [15%-35%, 57%-60%] -->
-                    <div class="cert-field field-skill-level">技能等级：{{ certificate.skillLevel || '' }}</div>
+                    <div class="cert-field field-skill-level">{{ certificate.skillLevel || '' }}</div>
                     
                     <!-- 发证日期 - [15%-35%, 65%-68%] -->
-                    <div class="cert-field field-issue-date">发证日期：{{ formatDate(certificate.issueDate) }}</div>
+                    <div class="cert-field field-issue-date">{{ formatDate(certificate.issueDate) }}</div>
                   </div>
                 </div>
               </div>
@@ -462,21 +459,11 @@ const getStatusText = (status: number) => {
                   white-space: nowrap;
                   
                   // 字段位置根据背景图片 bgCert.png 的坐标调整
+                  // 位置是相对于图片本身的位置（certificate-content 覆盖整个图片）
                   // 格式说明：[left%-right%, top%-bottom%] 表示字段显示区域
                   
-                  &.field-name {
-                    // [20%-80%, 8%-15%] 岗位技能培训合格证(电子版)
-                    top: 8%;
-                    left: 20%;
-                    width: 60%; // 20% 到 80% 的宽度
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #000;
-                    text-align: center;
-                  }
-
                   &.field-number {
-                    // [25%-45%, 17%-20%] 证书编号:
+                    // [25%-45%, 17%-20%] 证书编号的值
                     top: 17%;
                     left: 25%;
                     width: 20%; // 25% 到 45% 的宽度
@@ -486,7 +473,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-holder {
-                    // [15%-35%, 25%-28%] 姓　　名:
+                    // [15%-35%, 25%-28%] 姓名的值
                     top: 25%;
                     left: 15%;
                     width: 20%; // 15% 到 35% 的宽度
@@ -496,7 +483,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-gender {
-                    // [15%-35%, 33%-36%] 性　　别:
+                    // [15%-35%, 33%-36%] 性别的值
                     top: 33%;
                     left: 15%;
                     width: 20%;
@@ -506,7 +493,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-id-card {
-                    // [15%-35%, 41%-44%] 身份证号:
+                    // [15%-35%, 41%-44%] 身份证号的值
                     top: 41%;
                     left: 15%;
                     width: 20%;
@@ -516,7 +503,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-position {
-                    // [15%-35%, 49%-52%] 岗位名称:
+                    // [15%-35%, 49%-52%] 岗位名称的值
                     top: 49%;
                     left: 15%;
                     width: 20%;
@@ -526,7 +513,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-skill-level {
-                    // [15%-35%, 57%-60%] 技能等级:
+                    // [15%-35%, 57%-60%] 技能等级的值
                     top: 57%;
                     left: 15%;
                     width: 20%;
@@ -536,7 +523,7 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-issue-date {
-                    // [15%-35%, 65%-68%] 发证日期:
+                    // [15%-35%, 65%-68%] 发证日期的值
                     top: 65%;
                     left: 15%;
                     width: 20%;
