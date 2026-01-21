@@ -453,81 +453,81 @@ const getStatusText = (status: number) => {
 
                 .cert-field {
                   position: absolute;
-                  font-size: 16px;
+                  font-size: 18px;
                   color: #333;
                   font-weight: 500;
                   white-space: nowrap;
                   
-                  // 字段位置根据背景图片 bgCert.png 的坐标调整
-                  // 位置是相对于图片本身的位置（certificate-content 覆盖整个图片）
-                  // 格式说明：[left%-right%, top%-bottom%] 表示字段显示区域
+                  // 字段位置根据背景图片 bgCert.png 的像素坐标转换
+                  // 图片尺寸：1220×1646 像素
+                  // 坐标转换：x/1220*100% = left, y/1646*100% = top, width/1220*100% = width
                   
                   &.field-number {
-                    // [25%-45%, 17%-20%] 证书编号的值
-                    top: 17%;
-                    left: 25%;
-                    width: 20%; // 25% 到 45% 的宽度
-                    font-size: 15px;
+                    // 证书编号 (485, 205) 宽度575
+                    top: 12.5%; // 205/1646
+                    left: 39.8%; // 485/1220
+                    width: 47.1%; // 575/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-holder {
-                    // [15%-35%, 25%-28%] 姓名的值
-                    top: 25%;
-                    left: 15%;
-                    width: 20%; // 15% 到 35% 的宽度
-                    font-size: 16px;
+                    // 姓名 (385, 275) 宽度640
+                    top: 16.7%; // 275/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-gender {
-                    // [15%-35%, 33%-36%] 性别的值
-                    top: 33%;
-                    left: 15%;
-                    width: 20%;
-                    font-size: 16px;
+                    // 性别 (385, 345) 宽度640
+                    top: 21.0%; // 345/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-id-card {
-                    // [15%-35%, 41%-44%] 身份证号的值
-                    top: 41%;
-                    left: 15%;
-                    width: 20%;
-                    font-size: 16px;
+                    // 身份证号 (385, 415) 宽度640
+                    top: 25.2%; // 415/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-position {
-                    // [15%-35%, 49%-52%] 岗位名称的值
-                    top: 49%;
-                    left: 15%;
-                    width: 20%;
-                    font-size: 16px;
+                    // 岗位名称 (385, 485) 宽度640
+                    top: 29.5%; // 485/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-skill-level {
-                    // [15%-35%, 57%-60%] 技能等级的值
-                    top: 57%;
-                    left: 15%;
-                    width: 20%;
-                    font-size: 16px;
+                    // 技能等级 (385, 555) 宽度640
+                    top: 33.7%; // 555/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-issue-date {
-                    // [15%-35%, 65%-68%] 发证日期的值
-                    top: 65%;
-                    left: 15%;
-                    width: 20%;
-                    font-size: 16px;
+                    // 发证日期 (385, 625) 宽度640
+                    top: 38.0%; // 625/1646
+                    left: 31.6%; // 385/1220
+                    width: 52.5%; // 640/1220
+                    font-size: 18px;
                     color: #333;
                     text-align: left;
                   }
