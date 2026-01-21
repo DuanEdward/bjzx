@@ -79,6 +79,30 @@ public class Certificate {
     private String holder;
 
     /**
+     * 性别
+     */
+    @TableField("gender")
+    private String gender;
+
+    /**
+     * 身份证号
+     */
+    @TableField("id_card")
+    private String idCard;
+
+    /**
+     * 岗位名称
+     */
+    @TableField("position")
+    private String position;
+
+    /**
+     * 技能等级
+     */
+    @TableField("skill_level")
+    private String skillLevel;
+
+    /**
      * 证书持有人联系方式
      */
     @TableField("holder_contact")

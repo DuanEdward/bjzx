@@ -271,3 +271,40 @@ CREATE TABLE `contacts` (
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='联系我们表';
+
+-- 15. 证件表
+CREATE TABLE `certificate` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '证件ID',
+  `name` varchar(100) NOT NULL COMMENT '证件名称',
+  `type` varchar(50) NOT NULL COMMENT '证件类型（营业执照、组织机构代码证、税务登记证、社会保险登记证、统计登记证、开户许可证、卫生许可证、安全生产许可证、其他）',
+  `number` varchar(50) NOT NULL COMMENT '证件编号',
+  `holder` varchar(50) NOT NULL COMMENT '持有人姓名',
+  `gender` varchar(10) DEFAULT NULL COMMENT '性别（男、女）',
+  `id_card` varchar(18) DEFAULT NULL COMMENT '身份证号',
+  `position` varchar(100) DEFAULT NULL COMMENT '岗位名称',
+  `skill_level` varchar(50) DEFAULT NULL COMMENT '技能等级',
+  `holder_contact` varchar(100) DEFAULT NULL COMMENT '持有人联系方式',
+  `issuing_authority` varchar(100) NOT NULL COMMENT '发证机关',
+  `issue_date` date NOT NULL COMMENT '发证日期',
+  `valid_from` date NOT NULL COMMENT '有效期起始日期',
+  `valid_until` date NOT NULL COMMENT '有效期截止日期',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '证件状态（0-已过期，1-有效，2-即将过期）',
+  `attachment_path` varchar(255) DEFAULT NULL COMMENT '附件路径',
+  `description` text COMMENT '描述',
+  `is_public` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否公开（0-不公开，1-公开）',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_by` varchar(50) DEFAULT NULL COMMENT '创建人',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `update_by` varchar(50) DEFAULT NULL COMMENT '更新人',
+  `deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标记（0-未删除，1-已删除）',
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`),
+  KEY `idx_type` (`type`),
+  KEY `idx_number` (`number`),
+  KEY `idx_holder` (`holder`),
+  KEY `idx_id_card` (`id_card`),
+  KEY `idx_status` (`status`),
+  KEY `idx_is_public` (`is_public`),
+  KEY `idx_create_time` (`create_time`),
+  KEY `idx_deleted` (`deleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='证件信息表';

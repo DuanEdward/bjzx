@@ -75,9 +75,52 @@
               />
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="性别">
+              <el-select
+                v-model="formData.gender"
+                placeholder="请选择性别"
+                style="width: 100%"
+                clearable
+              >
+                <el-option label="男" value="男" />
+                <el-option label="女" value="女" />
+              </el-select>
+            </el-form-item>
+          </el-col>
         </el-row>
 
         <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="身份证号">
+              <el-input
+                v-model="formData.idCard"
+                placeholder="请输入身份证号"
+                maxlength="18"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="岗位名称">
+              <el-input
+                v-model="formData.position"
+                placeholder="请输入岗位名称"
+                maxlength="100"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="技能等级">
+              <el-input
+                v-model="formData.skillLevel"
+                placeholder="请输入技能等级"
+                maxlength="50"
+              />
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="持有人联系方式">
               <el-input
@@ -87,6 +130,9 @@
               />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="发证机关" prop="issuingAuthority">
               <el-input
@@ -233,6 +279,10 @@ const formData = reactive({
   type: '',
   number: '',
   holder: '',
+  gender: '',
+  idCard: '',
+  position: '',
+  skillLevel: '',
   holderContact: '',
   issuingAuthority: '',
   issueDate: '',
@@ -370,6 +420,10 @@ const fetchCertificateDetail = async () => {
     const result = await request.get(`/certificate/${certificateId.value}`)
     const certificate = result.data
     Object.assign(formData, {
+      gender: certificate.gender || '',
+      idCard: certificate.idCard || '',
+      position: certificate.position || '',
+      skillLevel: certificate.skillLevel || '',
       name: certificate.name || '',
       type: certificate.type || '',
       number: certificate.number || '',

@@ -73,7 +73,7 @@ const fetchStudyList = async () => {
     const params = {
       page: pagination.page,
       pageSize: pagination.pageSize,
-      keyword: '学习考试' // 可以通过关键词或分类筛选
+      category: 'study' // 使用分类编码筛选学习考试
     }
     const response = await getNewsList(params)
     const pageData = response.data as unknown as PaginationResponse<News>
