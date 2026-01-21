@@ -112,41 +112,29 @@
                 <div class="certificate-bg">
                   <img src="/pic/bgCert.png" alt="证书背景" class="certificate-bg-image" />
                   <div class="certificate-content">
-                    <!-- 证书名称 - 通常在上方中央 -->
+                    <!-- 证书名称 - [20%-80%, 8%-15%] -->
                     <div class="cert-field field-name">{{ certificate.name }}</div>
                     
-                    <!-- 证书编号 - 通常在证书名称下方 -->
-                    <div class="cert-field field-number">{{ certificate.number }}</div>
+                    <!-- 证书编号 - [25%-45%, 17%-20%] -->
+                    <div class="cert-field field-number">证书编号：{{ certificate.number }}</div>
                     
-                    <!-- 持有人姓名 - 通常在左侧中间位置 -->
-                    <div class="cert-field field-holder">{{ certificate.holder }}</div>
+                    <!-- 持有人姓名 - [15%-35%, 25%-28%] -->
+                    <div class="cert-field field-holder">姓　　名：{{ certificate.holder }}</div>
                     
-                    <!-- 性别 - 通常在持有人旁边 -->
-                    <div class="cert-field field-gender" v-if="certificate.gender">{{ certificate.gender }}</div>
+                    <!-- 性别 - [15%-35%, 33%-36%] -->
+                    <div class="cert-field field-gender">性　　别：{{ certificate.gender || '' }}</div>
                     
-                    <!-- 身份证号 - 通常在持有人下方 -->
-                    <div class="cert-field field-id-card" v-if="certificate.idCard">{{ certificate.idCard }}</div>
+                    <!-- 身份证号 - [15%-35%, 41%-44%] -->
+                    <div class="cert-field field-id-card">身份证号：{{ certificate.idCard || '' }}</div>
                     
-                    <!-- 岗位名称 - 通常在身份证号下方 -->
-                    <div class="cert-field field-position" v-if="certificate.position">{{ certificate.position }}</div>
+                    <!-- 岗位名称 - [15%-35%, 49%-52%] -->
+                    <div class="cert-field field-position">岗位名称：{{ certificate.position || '' }}</div>
                     
-                    <!-- 技能等级 - 通常在岗位名称旁边或下方 -->
-                    <div class="cert-field field-skill-level" v-if="certificate.skillLevel">{{ certificate.skillLevel }}</div>
+                    <!-- 技能等级 - [15%-35%, 57%-60%] -->
+                    <div class="cert-field field-skill-level">技能等级：{{ certificate.skillLevel || '' }}</div>
                     
-                    <!-- 发证机关 - 通常在右侧中间位置 -->
-                    <div class="cert-field field-authority">{{ certificate.issuingAuthority }}</div>
-                    
-                    <!-- 发证日期 - 通常在发证机关下方 -->
-                    <div class="cert-field field-issue-date">{{ formatDate(certificate.issueDate) }}</div>
-                    
-                    <!-- 有效期起始 - 通常在发证日期下方左侧 -->
-                    <div class="cert-field field-valid-from">{{ formatDate(certificate.validFrom) }}</div>
-                    
-                    <!-- 有效期截止 - 通常在有效期起始旁边 -->
-                    <div class="cert-field field-valid-until">{{ formatDate(certificate.validUntil) }}</div>
-                    
-                    <!-- 证书类型 - 通常在最下方中央 -->
-                    <div class="cert-field field-type">{{ certificate.type }}</div>
+                    <!-- 发证日期 - [15%-35%, 65%-68%] -->
+                    <div class="cert-field field-issue-date">发证日期：{{ formatDate(certificate.issueDate) }}</div>
                   </div>
                 </div>
               </div>
@@ -471,129 +459,90 @@ const getStatusText = (status: number) => {
                   font-size: 16px;
                   color: #333;
                   font-weight: 500;
-                  word-break: break-all;
+                  white-space: nowrap;
                   
-                  // 注意：以下位置需要根据实际背景图片 bgCert.png 的实际字段位置进行调整
-                  // 建议使用浏览器开发者工具查看图片，然后调整 top、left 和 transform 值
+                  // 字段位置根据背景图片 bgCert.png 的坐标调整
+                  // 格式说明：[left%-right%, top%-bottom%] 表示字段显示区域
                   
                   &.field-name {
-                    // 证书名称 - 通常在证书顶部中央
-                    top: 12%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 26px;
+                    // [20%-80%, 8%-15%] 岗位技能培训合格证(电子版)
+                    top: 8%;
+                    left: 20%;
+                    width: 60%; // 20% 到 80% 的宽度
+                    font-size: 24px;
                     font-weight: 700;
                     color: #000;
                     text-align: center;
                   }
 
                   &.field-number {
-                    // 证书编号 - 通常在证书名称下方
-                    top: 20%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
+                    // [25%-45%, 17%-20%] 证书编号:
+                    top: 17%;
+                    left: 25%;
+                    width: 20%; // 25% 到 45% 的宽度
+                    font-size: 15px;
                     color: #333;
-                    text-align: center;
+                    text-align: left;
                   }
 
                   &.field-holder {
-                    // 持有人姓名 - 通常在左侧中间位置
-                    top: 35%;
-                    left: 25%;
-                    transform: translateX(-50%);
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #000;
+                    // [15%-35%, 25%-28%] 姓　　名:
+                    top: 25%;
+                    left: 15%;
+                    width: 20%; // 15% 到 35% 的宽度
+                    font-size: 16px;
+                    color: #333;
                     text-align: left;
                   }
 
                   &.field-gender {
-                    // 性别 - 通常在持有人姓名右侧
-                    top: 35%;
-                    left: 35%;
+                    // [15%-35%, 33%-36%] 性　　别:
+                    top: 33%;
+                    left: 15%;
+                    width: 20%;
                     font-size: 16px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-id-card {
-                    // 身份证号 - 通常在持有人下方
-                    top: 42%;
-                    left: 25%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
+                    // [15%-35%, 41%-44%] 身份证号:
+                    top: 41%;
+                    left: 15%;
+                    width: 20%;
+                    font-size: 16px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-position {
-                    // 岗位名称 - 通常在身份证号下方
+                    // [15%-35%, 49%-52%] 岗位名称:
                     top: 49%;
-                    left: 25%;
-                    transform: translateX(-50%);
+                    left: 15%;
+                    width: 20%;
                     font-size: 16px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-skill-level {
-                    // 技能等级 - 通常在岗位名称右侧或下方
-                    top: 49%;
-                    left: 40%;
+                    // [15%-35%, 57%-60%] 技能等级:
+                    top: 57%;
+                    left: 15%;
+                    width: 20%;
                     font-size: 16px;
                     color: #333;
                     text-align: left;
                   }
 
-                  &.field-authority {
-                    // 发证机关 - 通常在右侧中间位置
-                    top: 45%;
-                    left: 70%;
-                    transform: translateX(-50%);
-                    font-size: 16px;
-                    color: #333;
-                    text-align: center;
-                  }
-
                   &.field-issue-date {
-                    // 发证日期 - 通常在发证机关下方
-                    top: 52%;
-                    left: 70%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
-                    color: #333;
-                    text-align: center;
-                  }
-
-                  &.field-valid-from {
-                    // 有效期起始 - 通常在发证日期下方左侧
-                    top: 59%;
-                    left: 60%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
-                    color: #333;
-                    text-align: center;
-                  }
-
-                  &.field-valid-until {
-                    // 有效期截止 - 通常在有效期起始旁边
-                    top: 59%;
-                    left: 80%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
-                    color: #333;
-                    text-align: center;
-                  }
-
-                  &.field-type {
-                    // 证书类型 - 通常在证书底部中央
-                    top: 75%;
-                    left: 50%;
-                    transform: translateX(-50%);
+                    // [15%-35%, 65%-68%] 发证日期:
+                    top: 65%;
+                    left: 15%;
+                    width: 20%;
                     font-size: 16px;
-                    color: #666;
-                    text-align: center;
+                    color: #333;
+                    text-align: left;
                   }
                 }
               }
