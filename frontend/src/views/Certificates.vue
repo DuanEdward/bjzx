@@ -108,61 +108,34 @@
               :key="certificate.id"
               class="certificate-item"
             >
-              <div class="certificate-info">
-                <div class="certificate-header">
-                  <h3 class="certificate-name">{{ certificate.name }}</h3>
-                  <el-tag
-                    :type="getStatusType(certificate.status)"
-                    size="large"
-                    effect="dark"
-                  >
-                    {{ getStatusText(certificate.status) }}
-                  </el-tag>
-                </div>
-
-                <el-descriptions :column="2" border class="certificate-details">
-                  <el-descriptions-item label="证书编号">
-                    {{ certificate.number }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="证书类型">
-                    {{ certificate.type }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="持有人">
-                    {{ certificate.holder }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="联系方式">
-                    {{ certificate.holderContact || '暂无' }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发证机关">
-                    {{ certificate.issuingAuthority }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="发证日期">
-                    {{ formatDate(certificate.issueDate) }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="有效期起始">
-                    {{ formatDate(certificate.validFrom) }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="有效期截止">
-                    {{ formatDate(certificate.validUntil) }}
-                  </el-descriptions-item>
-                </el-descriptions>
-
-                <div class="certificate-description" v-if="certificate.description">
-                  <el-divider content-position="left">证书描述</el-divider>
-                  <p>{{ certificate.description }}</p>
-                </div>
-
-                <div class="certificate-attachment" v-if="certificate.attachmentPath">
-                  <el-divider content-position="left">附件</el-divider>
-                  <el-link
-                    :href="certificate.attachmentPath"
-                    target="_blank"
-                    type="primary"
-                    :underline="false"
-                  >
-                    <el-icon><Document /></el-icon>
-                    查看附件
-                  </el-link>
+              <div class="certificate-display">
+                <div class="certificate-bg">
+                  <img src="/pic/bgCert.png" alt="证书背景" class="certificate-bg-image" />
+                  <div class="certificate-content">
+                    <!-- 证书名称 -->
+                    <div class="cert-field field-name">{{ certificate.name }}</div>
+                    
+                    <!-- 证书编号 -->
+                    <div class="cert-field field-number">{{ certificate.number }}</div>
+                    
+                    <!-- 持有人 -->
+                    <div class="cert-field field-holder">{{ certificate.holder }}</div>
+                    
+                    <!-- 发证机关 -->
+                    <div class="cert-field field-authority">{{ certificate.issuingAuthority }}</div>
+                    
+                    <!-- 发证日期 -->
+                    <div class="cert-field field-issue-date">{{ formatDate(certificate.issueDate) }}</div>
+                    
+                    <!-- 有效期起始 -->
+                    <div class="cert-field field-valid-from">{{ formatDate(certificate.validFrom) }}</div>
+                    
+                    <!-- 有效期截止 -->
+                    <div class="cert-field field-valid-until">{{ formatDate(certificate.validUntil) }}</div>
+                    
+                    <!-- 证书类型 -->
+                    <div class="cert-field field-type">{{ certificate.type }}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -439,61 +412,125 @@ const getStatusText = (status: number) => {
       }
 
       .certificate-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+
         .certificate-item {
-          margin-bottom: 30px;
-          padding: 20px;
-          background: var(--background-base);
-          border-radius: 8px;
-          transition: all 0.3s;
+          width: 100%;
+          max-width: 900px;
+          display: flex;
+          justify-content: center;
 
-          &:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-          }
+          .certificate-display {
+            width: 100%;
+            position: relative;
 
-          &:last-child {
-            margin-bottom: 0;
-          }
+            .certificate-bg {
+              position: relative;
+              width: 100%;
+              padding-bottom: 60%; // 根据图片比例调整，常见证书约为16:10
+              overflow: hidden;
+              border-radius: 8px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
-          .certificate-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+              .certificate-bg-image {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                background: #fff;
+              }
 
-            .certificate-name {
-              font-size: 22px;
-              font-weight: 600;
-              color: var(--text-primary);
-              margin: 0;
+              .certificate-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+
+                .cert-field {
+                  position: absolute;
+                  font-size: 16px;
+                  color: #333;
+                  font-weight: 500;
+                  word-break: break-all;
+                  text-align: center;
+                  
+                  // 默认位置，需要根据实际图片调整
+                  &.field-name {
+                    top: 15%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #1a1a1a;
+                  }
+
+                  &.field-number {
+                    top: 25%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 14px;
+                    color: #666;
+                  }
+
+                  &.field-holder {
+                    top: 35%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 18px;
+                    font-weight: 500;
+                    color: #1a1a1a;
+                  }
+
+                  &.field-authority {
+                    top: 50%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 16px;
+                    color: #333;
+                  }
+
+                  &.field-issue-date {
+                    top: 60%;
+                    left: 30%;
+                    transform: translateX(-50%);
+                    font-size: 14px;
+                    color: #666;
+                  }
+
+                  &.field-valid-from {
+                    top: 68%;
+                    left: 30%;
+                    transform: translateX(-50%);
+                    font-size: 14px;
+                    color: #666;
+                  }
+
+                  &.field-valid-until {
+                    top: 76%;
+                    left: 70%;
+                    transform: translateX(-50%);
+                    font-size: 14px;
+                    color: #666;
+                  }
+
+                  &.field-type {
+                    top: 85%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 14px;
+                    color: #666;
+                  }
+                }
+              }
             }
-          }
-
-          .certificate-details {
-            margin-bottom: 20px;
-
-            :deep(.el-descriptions__label) {
-              font-weight: 500;
-              color: var(--text-regular);
-            }
-
-            :deep(.el-descriptions__content) {
-              color: var(--text-primary);
-            }
-          }
-
-          .certificate-description {
-            margin-top: 20px;
-
-            p {
-              color: var(--text-regular);
-              line-height: 1.8;
-              margin: 10px 0 0 0;
-            }
-          }
-
-          .certificate-attachment {
-            margin-top: 20px;
           }
         }
       }

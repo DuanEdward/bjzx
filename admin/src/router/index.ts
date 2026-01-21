@@ -92,6 +92,24 @@ const routes: Array<RouteRecordRaw> = [
         name: 'CertificateEdit',
         component: () => import('@/views/content/CertificateEdit.vue'),
         meta: { title: '编辑证件', hidden: true }
+      },
+      {
+        path: 'study',
+        name: 'Study',
+        component: () => import('@/views/content/Study.vue'),
+        meta: { title: '学习考试管理' }
+      },
+      {
+        path: 'study/create',
+        name: 'StudyCreate',
+        component: () => import('@/views/content/StudyEdit.vue'),
+        meta: { title: '新增学习考试', hidden: true }
+      },
+      {
+        path: 'study/:id/edit',
+        name: 'StudyEdit',
+        component: () => import('@/views/content/StudyEdit.vue'),
+        meta: { title: '编辑学习考试', hidden: true }
       }
     ]
   },
