@@ -427,7 +427,7 @@ const getStatusText = (status: number) => {
             .certificate-bg {
               position: relative;
               width: 100%;
-              padding-bottom: 60%; // 根据图片比例调整，常见证书约为16:10
+              padding-bottom: 135%; // 图片尺寸 1220×1646，宽高比 1646/1220 ≈ 1.35
               overflow: hidden;
               border-radius: 8px;
               box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -438,7 +438,7 @@ const getStatusText = (status: number) => {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                object-fit: contain;
+                object-fit: fill; // 改为 fill 让图片完全填充容器
                 background: #fff;
               }
 
