@@ -453,81 +453,83 @@ const getStatusText = (status: number) => {
 
                 .cert-field {
                   position: absolute;
-                  font-size: 18px;
+                  font-size: 21px;
                   color: #333;
                   font-weight: 500;
                   white-space: nowrap;
+                  line-height: 1.8; // 增加行间距
                   
                   // 字段位置根据背景图片 bgCert.png 的像素坐标转换
                   // 图片尺寸：1220×1646 像素
                   // 坐标转换：x/1220*100% = left, y/1646*100% = top, width/1220*100% = width
+                  // 整体下移约2%
                   
                   &.field-number {
-                    // 证书编号 (485, 205) 宽度575
-                    top: 12.5%; // 205/1646
+                    // 证书编号 (485, 205) 宽度575 - 整体下移
+                    top: 14.5%; // 原12.5% + 2%
                     left: 39.8%; // 485/1220
                     width: 47.1%; // 575/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-holder {
-                    // 姓名 (385, 275) 宽度640
-                    top: 16.7%; // 275/1646
+                    // 姓名 (385, 275) 宽度640 - 整体下移
+                    top: 18.7%; // 原16.7% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-gender {
-                    // 性别 (385, 345) 宽度640
-                    top: 21.0%; // 345/1646
+                    // 性别 (385, 345) 宽度640 - 整体下移
+                    top: 23.0%; // 原21.0% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-id-card {
-                    // 身份证号 (385, 415) 宽度640
-                    top: 25.2%; // 415/1646
+                    // 身份证号 (385, 415) 宽度640 - 整体下移
+                    top: 27.2%; // 原25.2% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-position {
-                    // 岗位名称 (385, 485) 宽度640
-                    top: 29.5%; // 485/1646
+                    // 岗位名称 (385, 485) 宽度640 - 整体下移
+                    top: 31.5%; // 原29.5% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-skill-level {
-                    // 技能等级 (385, 555) 宽度640
-                    top: 33.7%; // 555/1646
+                    // 技能等级 (385, 555) 宽度640 - 整体下移
+                    top: 35.7%; // 原33.7% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-issue-date {
-                    // 发证日期 (385, 625) 宽度640
-                    top: 38.0%; // 625/1646
+                    // 发证日期 (385, 625) 宽度640 - 整体下移
+                    top: 40.0%; // 原38.0% + 2%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 18px;
+                    font-size: 21px;
                     color: #333;
                     text-align: left;
                   }
