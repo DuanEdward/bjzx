@@ -453,83 +453,83 @@ const getStatusText = (status: number) => {
 
                 .cert-field {
                   position: absolute;
-                  font-size: 21px;
+                  font-size: 24px;
                   color: #333;
                   font-weight: 500;
                   white-space: nowrap;
-                  line-height: 1.8; // 增加行间距
+                  line-height: 2.4; // 行间距加大
                   
                   // 字段位置根据背景图片 bgCert.png 的像素坐标转换
                   // 图片尺寸：1220×1646 像素
                   // 坐标转换：x/1220*100% = left, y/1646*100% = top, width/1220*100% = width
-                  // 整体下移约2%
+                  // 每行之间top相隔5.5%
                   
                   &.field-number {
-                    // 证书编号 (485, 205) 宽度575 - 整体下移
-                    top: 14.5%; // 原12.5% + 2%
+                    // 证书编号 (485, 205) 宽度575
+                    top: 14.5%; // 起始位置
                     left: 39.8%; // 485/1220
                     width: 47.1%; // 575/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-holder {
-                    // 姓名 (385, 275) 宽度640 - 整体下移
-                    top: 18.7%; // 原16.7% + 2%
+                    // 姓名 (385, 275) 宽度640
+                    top: 20.0%; // 证书编号 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-gender {
-                    // 性别 (385, 345) 宽度640 - 整体下移
-                    top: 23.0%; // 原21.0% + 2%
+                    // 性别 (385, 345) 宽度640
+                    top: 25.5%; // 姓名 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-id-card {
-                    // 身份证号 (385, 415) 宽度640 - 整体下移
-                    top: 27.2%; // 原25.2% + 2%
+                    // 身份证号 (385, 415) 宽度640
+                    top: 31.0%; // 性别 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-position {
-                    // 岗位名称 (385, 485) 宽度640 - 整体下移
-                    top: 31.5%; // 原29.5% + 2%
+                    // 岗位名称 (385, 485) 宽度640
+                    top: 36.5%; // 身份证号 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-skill-level {
-                    // 技能等级 (385, 555) 宽度640 - 整体下移
-                    top: 35.7%; // 原33.7% + 2%
+                    // 技能等级 (385, 555) 宽度640
+                    top: 42.0%; // 岗位名称 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
 
                   &.field-issue-date {
-                    // 发证日期 (385, 625) 宽度640 - 整体下移
-                    top: 40.0%; // 原38.0% + 2%
+                    // 发证日期 (385, 625) 宽度640
+                    top: 47.5%; // 技能等级 + 5.5%
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
-                    font-size: 21px;
+                    font-size: 24px;
                     color: #333;
                     text-align: left;
                   }
