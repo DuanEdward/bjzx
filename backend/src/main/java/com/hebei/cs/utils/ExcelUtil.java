@@ -47,19 +47,23 @@ public class ExcelUtil {
                 Certificate certificate = new Certificate();
 
                 // 读取各列数据（根据Excel列顺序）
-                // 列顺序：证件名称、证件类型、证件编号、持有人、持有人联系方式、发证机关、发证日期、有效期起始、有效期截止、证件状态、是否公开、附件路径、描述
+                // 列顺序：证件名称、证件类型、证件编号、持有人、性别、身份证号、岗位名称、技能等级、持有人联系方式、发证机关、发证日期、有效期起始、有效期截止、证件状态、是否公开、附件路径、描述
                 certificate.setName(getCellValue(row, 0));
                 certificate.setType(getCellValue(row, 1));
                 certificate.setNumber(getCellValue(row, 2));
                 certificate.setHolder(getCellValue(row, 3));
-                certificate.setHolderContact(getCellValue(row, 4));
-                certificate.setIssuingAuthority(getCellValue(row, 5));
-                certificate.setIssueDate(parseDateFromCell(row, 6));
-                certificate.setValidFrom(parseDateFromCell(row, 7));
-                certificate.setValidUntil(parseDateFromCell(row, 8));
+                certificate.setGender(getCellValue(row, 4)); // 性别
+                certificate.setIdCard(getCellValue(row, 5)); // 身份证号
+                certificate.setPosition(getCellValue(row, 6)); // 岗位名称
+                certificate.setSkillLevel(getCellValue(row, 7)); // 技能等级
+                certificate.setHolderContact(getCellValue(row, 8));
+                certificate.setIssuingAuthority(getCellValue(row, 9));
+                certificate.setIssueDate(parseDateFromCell(row, 10));
+                certificate.setValidFrom(parseDateFromCell(row, 11));
+                certificate.setValidUntil(parseDateFromCell(row, 12));
 
                 // 证件状态：有效=1，即将过期=2，已过期=0
-                String statusStr = getCellValue(row, 9);
+                String statusStr = getCellValue(row, 13);
                 if (statusStr != null && !statusStr.trim().isEmpty()) {
                     if (statusStr.contains("有效") || statusStr.equals("1")) {
                         certificate.setStatus(1);
@@ -75,15 +79,15 @@ public class ExcelUtil {
                 }
 
                 // 是否公开：公开=true/1，不公开=false/0
-                String isPublicStr = getCellValue(row, 10);
+                String isPublicStr = getCellValue(row, 14);
                 if (isPublicStr != null && !isPublicStr.trim().isEmpty()) {
                     certificate.setIsPublic(isPublicStr.contains("公开") || isPublicStr.equals("1") || isPublicStr.equalsIgnoreCase("true"));
                 } else {
                     certificate.setIsPublic(true); // 默认公开
                 }
 
-                certificate.setAttachmentPath(getCellValue(row, 11));
-                certificate.setDescription(getCellValue(row, 12));
+                certificate.setAttachmentPath(getCellValue(row, 15));
+                certificate.setDescription(getCellValue(row, 16));
 
                 // 只添加非空行
                 if (certificate.getName() != null && !certificate.getName().trim().isEmpty()) {
@@ -219,8 +223,8 @@ public class ExcelUtil {
         // 创建表头
         Row headerRow = sheet.createRow(0);
         String[] headers = {
-            "证件名称", "证件类型", "证件编号", "持有人", "持有人联系方式",
-            "发证机关", "发证日期", "有效期起始", "有效期截止", "证件状态",
+            "证件名称", "证件类型", "证件编号", "持有人", "性别", "身份证号", "岗位名称", "技能等级",
+            "持有人联系方式", "发证机关", "发证日期", "有效期起始", "有效期截止", "证件状态",
             "是否公开", "附件路径", "描述"
         };
 
@@ -248,16 +252,20 @@ public class ExcelUtil {
         exampleRow.createCell(0).setCellValue("示例：营业执照");
         exampleRow.createCell(1).setCellValue("营业执照");
         exampleRow.createCell(2).setCellValue("91110000MA07X8XX9K");
-        exampleRow.createCell(3).setCellValue("示例公司");
-        exampleRow.createCell(4).setCellValue("010-88888888");
-        exampleRow.createCell(5).setCellValue("北京市市场监督管理局");
-        exampleRow.createCell(6).setCellValue("2024-01-01");
-        exampleRow.createCell(7).setCellValue("2024-01-01");
-        exampleRow.createCell(8).setCellValue("2034-01-01");
-        exampleRow.createCell(9).setCellValue("有效");
-        exampleRow.createCell(10).setCellValue("公开");
-        exampleRow.createCell(11).setCellValue("");
-        exampleRow.createCell(12).setCellValue("示例描述");
+        exampleRow.createCell(3).setCellValue("张三");
+        exampleRow.createCell(4).setCellValue("男");
+        exampleRow.createCell(5).setCellValue("110101199001011234");
+        exampleRow.createCell(6).setCellValue("操作员");
+        exampleRow.createCell(7).setCellValue("高级");
+        exampleRow.createCell(8).setCellValue("010-88888888");
+        exampleRow.createCell(9).setCellValue("北京市市场监督管理局");
+        exampleRow.createCell(10).setCellValue("2024-01-01");
+        exampleRow.createCell(11).setCellValue("2024-01-01");
+        exampleRow.createCell(12).setCellValue("2034-01-01");
+        exampleRow.createCell(13).setCellValue("有效");
+        exampleRow.createCell(14).setCellValue("公开");
+        exampleRow.createCell(15).setCellValue("");
+        exampleRow.createCell(16).setCellValue("示例描述");
 
         return workbook;
     }

@@ -205,6 +205,7 @@
               <li>请先下载Excel模板，按照模板格式填写数据</li>
               <li>支持.xlsx和.xls格式的Excel文件</li>
               <li>必填字段：证件名称、证件类型、证件编号、持有人、发证机关、发证日期、有效期起始、有效期截止</li>
+              <li>可选字段：性别（男/女）、身份证号、岗位名称、技能等级、持有人联系方式、附件路径、描述</li>
               <li>证件状态：有效/1、即将过期/2、已过期/0（默认为有效）</li>
               <li>是否公开：公开/1/true、不公开/0/false（默认为公开）</li>
             </ul>
@@ -281,6 +282,18 @@
           <el-descriptions-item label="持有人">
             {{ currentCertificate.holder }}
           </el-descriptions-item>
+          <el-descriptions-item label="性别">
+            {{ currentCertificate.gender || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="身份证号">
+            {{ currentCertificate.idCard || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="岗位名称">
+            {{ currentCertificate.position || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="技能等级">
+            {{ currentCertificate.skillLevel || '-' }}
+          </el-descriptions-item>
           <el-descriptions-item label="持有人联系方式">
             {{ currentCertificate.holderContact || '-' }}
           </el-descriptions-item>
@@ -339,6 +352,10 @@ interface Certificate {
   type: string
   number: string
   holder: string
+  gender?: string
+  idCard?: string
+  position?: string
+  skillLevel?: string
   holderContact?: string
   issuingAuthority: string
   issueDate: string
