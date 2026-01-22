@@ -48,7 +48,7 @@ public class HomeServiceImpl implements HomeService {
     @Override
     public List<News> getLatestNews(Integer pageSize) {
         Page<News> page = new Page<>(1, pageSize);
-        Page<News> result = newsService.getNewsPage(page, null, null);
+        Page<News> result = newsService.getNewsPage(page, null, null, null);
         return result.getRecords();
     }
 
