@@ -38,7 +38,8 @@ public class NewsController {
             @RequestParam(defaultValue = "10") Long pageSize,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
 
         // 如果传入分类编码，则转换为分类ID
         if (categoryId == null && category != null && !category.isEmpty()) {
@@ -52,7 +53,7 @@ public class NewsController {
         }
 
         Page<News> pageParam = new Page<>(page, pageSize);
-        Page<News> result = newsService.getNewsPage(pageParam, categoryId, keyword);
+        Page<News> result = newsService.getNewsPage(pageParam, categoryId, keyword, status);
 
         PageResult<News> pageResult = new PageResult<>(
                 result.getRecords(),

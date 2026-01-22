@@ -30,8 +30,9 @@ public interface NewsMapper extends BaseMapper<News> {
             "WHERE n.deleted = 0 " +
             "<if test='categoryId != null'>AND n.category_id = #{categoryId}</if> " +
             "<if test='keyword != null and keyword != \"\"'>AND (n.title LIKE CONCAT('%', #{keyword}, '%') OR n.content LIKE CONCAT('%', #{keyword}, '%'))</if> " +
+            "<if test='status != null'>AND n.status = #{status}</if> " +
             "ORDER BY n.is_top DESC, n.published_at DESC, n.id DESC" +
             "</script>")
-    Page<News> selectNewsPage(Page<News> page, @Param("categoryId") Long categoryId, @Param("keyword") String keyword);
+    Page<News> selectNewsPage(Page<News> page, @Param("categoryId") Long categoryId, @Param("keyword") String keyword, @Param("status") Integer status);
 
 }

@@ -22,8 +22,8 @@ import java.time.LocalDateTime;
 public class NewsServiceImpl extends ServiceImpl<NewsMapper, News> implements NewsService {
 
     @Override
-    public Page<News> getNewsPage(Page<News> page, Long categoryId, String keyword) {
-        return baseMapper.selectNewsPage(page, categoryId, keyword);
+    public Page<News> getNewsPage(Page<News> page, Long categoryId, String keyword, Integer status) {
+        return baseMapper.selectNewsPage(page, categoryId, keyword, status);
     }
 
     @Override

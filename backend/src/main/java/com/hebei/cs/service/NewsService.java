@@ -18,9 +18,10 @@ public interface NewsService extends IService<News> {
      * @param page 分页对象
      * @param categoryId 分类ID
      * @param keyword 关键词
+     * @param status 状态（0-草稿，1-已发布，null-全部）
      * @return 新闻分页列表
      */
-    Page<News> getNewsPage(Page<News> page, Long categoryId, String keyword);
+    Page<News> getNewsPage(Page<News> page, Long categoryId, String keyword, Integer status);
 
     /**
      * 发布新闻

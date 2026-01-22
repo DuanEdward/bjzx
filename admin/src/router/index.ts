@@ -110,6 +110,24 @@ const routes: Array<RouteRecordRaw> = [
         name: 'StudyEdit',
         component: () => import('@/views/content/StudyEdit.vue'),
         meta: { title: '编辑学习考试', hidden: true }
+      },
+      {
+        path: 'policy',
+        name: 'Policy',
+        component: () => import('@/views/content/Policy.vue'),
+        meta: { title: '政策法规管理' }
+      },
+      {
+        path: 'policy/create',
+        name: 'PolicyCreate',
+        component: () => import('@/views/content/PolicyEdit.vue'),
+        meta: { title: '新增政策法规', hidden: true }
+      },
+      {
+        path: 'policy/:id/edit',
+        name: 'PolicyEdit',
+        component: () => import('@/views/content/PolicyEdit.vue'),
+        meta: { title: '编辑政策法规', hidden: true }
       }
     ]
   },

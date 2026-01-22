@@ -1,14 +1,14 @@
 <template>
-  <div class="study-page">
+  <div class="policy-page">
     <div class="page-header">
       <div class="header-left">
-        <h2>学习考试管理</h2>
-        <p>管理系统中的学习考试内容</p>
+        <h2>政策法规管理</h2>
+        <p>管理系统中的政策法规内容</p>
       </div>
       <div class="header-right">
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
-          新增学习考试
+          新增政策法规
         </el-button>
       </div>
     </div>
@@ -57,7 +57,7 @@
     <!-- 数据表格 -->
     <el-card class="table-card" shadow="never">
       <el-table
-        :data="studyList"
+        :data="policyList"
         v-loading="loading"
         stripe
         style="width: 100%"
@@ -119,7 +119,7 @@ import request from '@/api'
 const router = useRouter()
 
 // 类型定义
-interface Study {
+interface Policy {
   id: number
   title: string
   summary: string
@@ -151,16 +151,16 @@ const pagination = reactive({
 // 数据
 const loading = ref(false)
 const total = ref(0)
-const studyList = ref<Study[]>([])
+const policyList = ref<Policy[]>([])
 
-// 获取学习考试列表
-const fetchStudyList = async () => {
+// 获取政策法规列表
+const fetchPolicyList = async () => {
   try {
     loading.value = true
     const params: any = {
       page: pagination.current,
       pageSize: pagination.size,
-      category: 'study' // 过滤学习考试分类（使用category参数，后端会转换为categoryId）
+      category: 'policy' // 过滤政策法规分类（使用category参数，后端会转换为categoryId）
     }
 
     if (searchForm.keyword) {
@@ -171,7 +171,7 @@ const fetchStudyList = async () => {
     }
 
     const result = await request.get('/news/list', { params })
-    studyList.value = result.data.list || []
+    policyList.value = result.data.list || []
     total.value = result.data.total || 0
   } catch (error: any) {
     console.error('查询失败:', error)
@@ -184,7 +184,7 @@ const fetchStudyList = async () => {
 // 搜索
 const handleSearch = () => {
   pagination.current = 1
-  fetchStudyList()
+  fetchPolicyList()
 }
 
 // 重置
@@ -192,21 +192,21 @@ const handleReset = () => {
   searchForm.keyword = ''
   searchForm.status = null
   pagination.current = 1
-  fetchStudyList()
+  fetchPolicyList()
 }
 
 // 新增
 const handleCreate = () => {
-  router.push('/content/study/create')
+  router.push('/content/policy/create')
 }
 
 // 编辑
-const handleEdit = (row: Study) => {
-  router.push(`/content/study/${row.id}/edit`)
+const handleEdit = (row: Policy) => {
+  router.push(`/content/policy/${row.id}/edit`)
 }
 
 // 删除
-const handleDelete = (row: Study) => {
+const handleDelete = (row: Policy) => {
   ElMessageBox.confirm(
     `确定要删除"${row.title}"吗？`,
     '提示',
@@ -219,7 +219,7 @@ const handleDelete = (row: Study) => {
     try {
       await request.delete(`/news/${row.id}`)
       ElMessage.success('删除成功')
-      fetchStudyList()
+      fetchPolicyList()
     } catch (error: any) {
       console.error('删除失败:', error)
       ElMessage.error('删除失败，请稍后重试')
@@ -231,23 +231,23 @@ const handleDelete = (row: Study) => {
 const handleSizeChange = (size: number) => {
   pagination.size = size
   pagination.current = 1
-  fetchStudyList()
+  fetchPolicyList()
 }
 
 // 当前页改变
 const handleCurrentChange = (current: number) => {
   pagination.current = current
-  fetchStudyList()
+  fetchPolicyList()
 }
 
 // 页面加载时获取数据
 onMounted(() => {
-  fetchStudyList()
+  fetchPolicyList()
 })
 </script>
 
 <style lang="scss" scoped>
-.study-page {
+.policy-page {
   .page-header {
     display: flex;
     justify-content: space-between;
