@@ -73,7 +73,7 @@ const fetchPolicyList = async () => {
     const params = {
       page: pagination.page,
       pageSize: pagination.pageSize,
-      keyword: '政策法规' // 可以通过关键词或分类筛选
+      category: 'policy' // 使用分类编码筛选政策法规
     }
     const response = await getNewsList(params)
     const pageData = response.data as unknown as PaginationResponse<News>
