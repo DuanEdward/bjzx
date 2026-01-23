@@ -215,16 +215,16 @@ onMounted(() => {
 
     .intro-image {
       flex: 1;
+      max-width: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
-      .placeholder-image {
-        background: var(--background-light);
-        height: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-secondary);
-        border-radius: 8px;
+      img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; // 图片按容器裁切，不按原始尺寸
       }
     }
   }
