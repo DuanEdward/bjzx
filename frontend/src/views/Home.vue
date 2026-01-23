@@ -23,11 +23,7 @@
             <p>北京中兴建机职业技能鉴定中心是经相关部门批准设立的职业技能鉴定机构，致力于为建筑机械行业提供专业的职业技能鉴定服务。中心秉承"公正、专业、高效"的服务理念，为行业培养和认证技能人才，推动行业健康发展。</p>
           </div>
           <div class="intro-image">
-            <!-- <img src="@/assets/images/society-intro.jpg" alt="中心简介" v-if="false"> -->
-            <div class="placeholder-image">
-              <el-icon size="120"><Picture /></el-icon>
-              <p>中心形象图</p>
-            </div>
+            <img src="/pic/center_pic.jpg" alt="中心形象图">
           </div>
         </div>
       </div>
