@@ -109,6 +109,12 @@ public class Certificate {
     private String holderContact;
 
     /**
+     * 一寸照路径
+     */
+    @TableField("photo_path")
+    private String photoPath;
+
+    /**
      * 证件描述
      */
     @TableField("description")

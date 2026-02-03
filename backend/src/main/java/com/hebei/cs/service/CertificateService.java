@@ -59,4 +59,9 @@ public interface CertificateService extends IService<Certificate> {
      * 批量导入证件
      */
     Map<String, Object> batchImportCertificates(List<Certificate> certificates);
+
+    /**
+     * 从ZIP文件批量导入证件（包含Excel和图片）
+     */
+    Map<String, Object> batchImportCertificatesFromZip(org.springframework.web.multipart.MultipartFile zipFile);
 }

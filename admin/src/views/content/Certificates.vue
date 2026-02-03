@@ -202,12 +202,20 @@
         >
           <template #default>
             <ul style="margin: 10px 0 0 20px; padding: 0; line-height: 1.8">
-              <li>请先下载Excel模板，按照模板格式填写数据</li>
-              <li>支持.xlsx和.xls格式的Excel文件</li>
-              <li>必填字段：证件名称、证件类型、证件编号、持有人、发证机关、发证日期、有效期起始、有效期截止</li>
-              <li>可选字段：性别（男/女）、身份证号、岗位名称、技能等级、持有人联系方式、附件路径、描述</li>
-              <li>证件状态：有效/1、即将过期/2、已过期/0（默认为有效）</li>
-              <li>是否公开：公开/1/true、不公开/0/false（默认为公开）</li>
+              <li><strong>方式一：ZIP文件批量导入（推荐）</strong></li>
+              <li style="margin-left: 20px;">1. 准备Excel文件（证件信息）和图片文件夹（一寸照）</li>
+              <li style="margin-left: 20px;">2. 将Excel文件和图片文件夹打包成ZIP文件</li>
+              <li style="margin-left: 20px;">3. 图片文件名使用证件编号或持有人姓名命名（如：91110000MA07X8XX9K.jpg 或 张三.jpg）</li>
+              <li style="margin-left: 20px;">4. 上传ZIP文件，系统会自动匹配图片到对应证件</li>
+              <li style="margin-left: 20px;">5. 支持的图片格式：JPG、JPEG、PNG、GIF</li>
+              <li><strong>方式二：Excel文件单独导入</strong></li>
+              <li style="margin-left: 20px;">1. 上传Excel文件导入证件基本信息</li>
+              <li style="margin-left: 20px;">2. 导入后，在证件编辑页面单独上传一寸照</li>
+              <li><strong>Excel文件格式要求：</strong></li>
+              <li style="margin-left: 20px;">必填字段：证件名称、证件类型、证件编号、持有人、发证机关、发证日期、有效期起始、有效期截止</li>
+              <li style="margin-left: 20px;">可选字段：性别（男/女）、身份证号、岗位名称、技能等级、持有人联系方式、附件路径、描述</li>
+              <li style="margin-left: 20px;">证件状态：有效/1、即将过期/2、已过期/0（默认为有效）</li>
+              <li style="margin-left: 20px;">是否公开：公开/1/true、不公开/0/false（默认为公开）</li>
             </ul>
           </template>
         </el-alert>
@@ -217,7 +225,7 @@
           :auto-upload="false"
           :on-change="handleFileChange"
           :file-list="fileList"
-          accept=".xlsx,.xls"
+          accept=".xlsx,.xls,.zip"
           :limit="1"
           drag
         >
@@ -227,14 +235,16 @@
           </div>
           <template #tip>
             <div class="el-upload__tip">
-              只能上传Excel文件，且不超过10MB
+              支持Excel文件（.xlsx或.xls）或ZIP文件（.zip），文件大小不超过50MB
+              <br />
+              ZIP文件格式：包含Excel文件和图片文件夹，图片文件名使用证件编号或持有人姓名命名
             </div>
           </template>
         </el-upload>
 
         <div v-if="importResult" class="import-result" style="margin-top: 20px">
           <el-alert
-            :title="`导入完成：成功 ${importResult.successCount} 条，失败 ${importResult.failCount} 条`"
+            :title="`导入完成：成功 ${importResult.successCount} 条，失败 ${importResult.failCount} 条${importResult.photoMatchedCount !== undefined ? '，匹配一寸照 ' + importResult.photoMatchedCount + ' 张' : ''}`"
             :type="importResult.failCount > 0 ? 'warning' : 'success'"
             :closable="false"
             show-icon
@@ -319,6 +329,16 @@
               {{ currentCertificate.isPublic ? '公开' : '不公开' }}
             </el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="一寸照" :span="2">
+            <el-image
+              v-if="currentCertificate.photoPath"
+              :src="currentCertificate.photoPath"
+              style="width: 100px; height: 140px; border: 1px solid #ddd; border-radius: 4px;"
+              fit="cover"
+              preview
+            />
+            <span v-else>-</span>
+          </el-descriptions-item>
           <el-descriptions-item label="附件路径" :span="2">
             {{ currentCertificate.attachmentPath || '-' }}
           </el-descriptions-item>
@@ -357,6 +377,7 @@ interface Certificate {
   position?: string
   skillLevel?: string
   holderContact?: string
+  photoPath?: string
   issuingAuthority: string
   issueDate: string
   validFrom: string
@@ -372,6 +393,8 @@ interface Certificate {
 interface ImportResult {
   successCount: number
   failCount: number
+  totalCount?: number
+  photoMatchedCount?: number
   errorMessages?: string[]
 }
 
@@ -621,14 +644,15 @@ const handleConfirmImport = async () => {
 
   // 验证文件类型
   const fileName = file.name
-  if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-    ElMessage.error('只支持Excel文件（.xlsx或.xls格式）')
+  if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.zip')) {
+    ElMessage.error('只支持Excel文件（.xlsx或.xls格式）或ZIP文件（.zip格式）')
     return
   }
 
-  // 验证文件大小（10MB）
-  if (file.size > 10 * 1024 * 1024) {
-    ElMessage.error('文件大小不能超过10MB')
+  // 验证文件大小（ZIP文件50MB，Excel文件10MB）
+  const maxSize = fileName.endsWith('.zip') ? 50 * 1024 * 1024 : 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.error(fileName.endsWith('.zip') ? 'ZIP文件大小不能超过50MB' : 'Excel文件大小不能超过10MB')
     return
   }
 

@@ -48,6 +48,7 @@ public class ExcelUtil {
 
                 // 读取各列数据（根据Excel列顺序）
                 // 列顺序：证件名称、证件类型、证件编号、持有人、性别、身份证号、岗位名称、技能等级、持有人联系方式、发证机关、发证日期、有效期起始、有效期截止、证件状态、是否公开、附件路径、描述
+                // 注意：一寸照需要在导入后单独上传文件，不在Excel中填写
                 certificate.setName(getCellValue(row, 0));
                 certificate.setType(getCellValue(row, 1));
                 certificate.setNumber(getCellValue(row, 2));
@@ -86,6 +87,8 @@ public class ExcelUtil {
                     certificate.setIsPublic(true); // 默认公开
                 }
 
+                // 一寸照路径不在Excel中填写，需要在导入后单独上传文件
+                // 跳过一寸照路径列，附件路径现在是第15列，描述是第16列
                 certificate.setAttachmentPath(getCellValue(row, 15));
                 certificate.setDescription(getCellValue(row, 16));
 
@@ -264,7 +267,7 @@ public class ExcelUtil {
         exampleRow.createCell(12).setCellValue("2034-01-01");
         exampleRow.createCell(13).setCellValue("有效");
         exampleRow.createCell(14).setCellValue("公开");
-        exampleRow.createCell(15).setCellValue("");
+        exampleRow.createCell(15).setCellValue(""); // 附件路径
         exampleRow.createCell(16).setCellValue("示例描述");
 
         return workbook;

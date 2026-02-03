@@ -247,7 +247,8 @@ public class CertificateController {
     }
 
     /**
-     * 批量导入证件
+     * 批量导入证件（支持Excel文件或ZIP文件）
+     * ZIP文件格式：包含Excel文件和图片文件夹
      */
     @PostMapping("/batch-import")
     public Result<Map<String, Object>> batchImportCertificates(@RequestParam("file") MultipartFile file) {
@@ -257,21 +258,26 @@ public class CertificateController {
             }
 
             String fileName = file.getOriginalFilename();
-            if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
-                return Result.error("只支持Excel文件（.xlsx或.xls格式）");
+            if (fileName == null) {
+                return Result.error("文件名不能为空");
             }
 
-            // 解析Excel文件
-            List<Certificate> certificates = ExcelUtil.parseCertificateExcel(file);
-
-            if (certificates.isEmpty()) {
-                return Result.error("Excel文件中没有有效数据");
+            // 判断文件类型：ZIP或Excel
+            if (fileName.endsWith(".zip")) {
+                // ZIP文件批量导入（包含Excel和图片）
+                Map<String, Object> result = certificateService.batchImportCertificatesFromZip(file);
+                return Result.success("导入完成", result);
+            } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+                // 单独Excel文件导入（不含图片）
+                List<Certificate> certificates = ExcelUtil.parseCertificateExcel(file);
+                if (certificates.isEmpty()) {
+                    return Result.error("Excel文件中没有有效数据");
+                }
+                Map<String, Object> result = certificateService.batchImportCertificates(certificates);
+                return Result.success("导入完成", result);
+            } else {
+                return Result.error("只支持Excel文件（.xlsx或.xls格式）或ZIP文件（.zip格式）");
             }
-
-            // 批量导入
-            Map<String, Object> result = certificateService.batchImportCertificates(certificates);
-
-            return Result.success("导入完成", result);
         } catch (Exception e) {
             log.error("批量导入证件失败", e);
             return Result.error("导入失败: " + e.getMessage());

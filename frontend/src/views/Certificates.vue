@@ -118,6 +118,16 @@
                     <!-- 持有人姓名 - [15%-35%, 25%-28%] -->
                     <div class="cert-field field-holder">{{ certificate.holder }}</div>
                     
+                    <!-- 一寸照 - top: 19.5%, left: 60% -->
+                    <div class="cert-field field-photo">
+                      <img 
+                        v-if="certificate.photoPath" 
+                        :src="certificate.photoPath" 
+                        alt="一寸照" 
+                        class="photo-image"
+                      />
+                    </div>
+                    
                     <!-- 性别 - [15%-35%, 33%-36%] -->
                     <div class="cert-field field-gender">{{ certificate.gender || '' }}</div>
                     
@@ -465,8 +475,8 @@ const getStatusText = (status: number) => {
                   // 每行之间top相隔5.5%
                   
                   &.field-number {
-                    // 证书编号 (485, 205) 宽度575
-                    top: 14.5%; // 起始位置
+                    // 证书编号
+                    top: 14%; // 调整后的位置
                     left: 39.8%; // 485/1220
                     width: 47.1%; // 575/1220
                     font-size: 24px;
@@ -475,8 +485,8 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-holder {
-                    // 姓名 (385, 275) 宽度640
-                    top: 20.0%; // 证书编号 + 5.5%
+                    // 姓名
+                    top: 19.5%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
@@ -485,8 +495,8 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-gender {
-                    // 性别 (385, 345) 宽度640
-                    top: 25.5%; // 姓名 + 5.5%
+                    // 性别
+                    top: 24.9%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
@@ -495,8 +505,8 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-id-card {
-                    // 身份证号 (385, 415) 宽度640
-                    top: 31.0%; // 性别 + 5.5%
+                    // 身份证号
+                    top: 30.3%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
@@ -505,8 +515,8 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-position {
-                    // 岗位名称 (385, 485) 宽度640
-                    top: 36.5%; // 身份证号 + 5.5%
+                    // 岗位名称
+                    top: 35.7%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
@@ -515,8 +525,8 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-skill-level {
-                    // 技能等级 (385, 555) 宽度640
-                    top: 42.0%; // 岗位名称 + 5.5%
+                    // 技能等级
+                    top: 41%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
@@ -525,13 +535,34 @@ const getStatusText = (status: number) => {
                   }
 
                   &.field-issue-date {
-                    // 发证日期 (385, 625) 宽度640
-                    top: 47.5%; // 技能等级 + 5.5%
+                    // 发证日期
+                    top: 46.4%; // 调整后的位置
                     left: 31.6%; // 385/1220
                     width: 52.5%; // 640/1220
                     font-size: 24px;
                     color: #333;
                     text-align: left;
+                  }
+
+                  &.field-photo {
+                    // 一寸照位置
+                    top: 19.5%;
+                    left: 60%;
+                    width: 8%; // 一寸照宽度约为证书宽度的8%
+                    height: 10.5%; // 一寸照高度约为证书高度的10.5%（25mm×35mm的比例）
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    border: 1px solid #ddd;
+                    background: #fff;
+
+                    .photo-image {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: cover;
+                      display: block;
+                    }
                   }
                 }
               }

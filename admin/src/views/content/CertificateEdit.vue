@@ -207,6 +207,33 @@
           </el-col>
         </el-row>
 
+        <el-form-item label="一寸照">
+          <el-upload
+            ref="photoUploadRef"
+            :http-request="handlePhotoUpload"
+            :on-remove="handlePhotoRemove"
+            :file-list="photoFileList"
+            :limit="1"
+            :before-upload="beforePhotoUpload"
+            list-type="picture-card"
+          >
+            <el-icon><Plus /></el-icon>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持JPG、PNG格式，建议尺寸25mm×35mm（一寸照），文件大小不超过2MB
+              </div>
+            </template>
+          </el-upload>
+          <div v-if="formData.photoPath" class="photo-preview" style="margin-top: 10px">
+            <el-image
+              :src="formData.photoPath"
+              style="width: 100px; height: 140px; border: 1px solid #ddd; border-radius: 4px;"
+              fit="cover"
+              preview
+            />
+          </div>
+        </el-form-item>
+
         <el-form-item label="附件">
           <el-upload
             ref="uploadRef"
@@ -254,7 +281,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, UploadFile, UploadFiles } from 'element-plus'
-import { Upload, Document } from '@element-plus/icons-vue'
+import { Upload, Document, Plus } from '@element-plus/icons-vue'
 import request from '@/api'
 
 const router = useRouter()
@@ -273,6 +300,11 @@ const uploadRef = ref()
 const fileList = ref<UploadFiles>([])
 const uploading = ref(false)
 
+// 一寸照上传相关
+const photoUploadRef = ref()
+const photoFileList = ref<UploadFiles>([])
+const uploadingPhoto = ref(false)
+
 // 表单数据
 const formData = reactive({
   name: '',
@@ -290,6 +322,7 @@ const formData = reactive({
   validUntil: '',
   status: 1,
   isPublic: true,
+  photoPath: '',
   attachmentPath: '',
   description: ''
 })
@@ -330,6 +363,71 @@ const formRules = {
   isPublic: [
     { required: true, message: '请选择是否公开', trigger: 'change' }
   ]
+}
+
+// 一寸照上传前验证
+const beforePhotoUpload = (file: File) => {
+  const isValidType = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png'
+  ].includes(file.type) || 
+  file.name.endsWith('.jpg') ||
+  file.name.endsWith('.jpeg') ||
+  file.name.endsWith('.png')
+
+  if (!isValidType) {
+    ElMessage.error('一寸照只支持JPG、PNG格式')
+    return false
+  }
+
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    ElMessage.error('一寸照大小不能超过2MB')
+    return false
+  }
+
+  return true
+}
+
+// 自定义一寸照上传
+const handlePhotoUpload = async (options: any) => {
+  const { file } = options
+  const uploadFormData = new FormData()
+  uploadFormData.append('file', file)
+
+  try {
+    uploadingPhoto.value = true
+    const response = await request.post('/file/upload', uploadFormData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (response && response.code === 200 && response.data) {
+      formData.photoPath = response.data.url
+      ElMessage.success('一寸照上传成功')
+      // 更新文件列表显示
+      photoFileList.value = [{
+        name: file.name,
+        url: response.data.url,
+        status: 'success'
+      } as UploadFile]
+    } else {
+      ElMessage.error(response?.message || '一寸照上传失败')
+    }
+  } catch (error: any) {
+    console.error('一寸照上传失败:', error)
+    ElMessage.error('一寸照上传失败，请稍后重试')
+  } finally {
+    uploadingPhoto.value = false
+  }
+}
+
+// 移除一寸照
+const handlePhotoRemove = () => {
+  formData.photoPath = ''
+  photoFileList.value = []
 }
 
 // 文件上传前验证
@@ -435,9 +533,18 @@ const fetchCertificateDetail = async () => {
       validUntil: certificate.validUntil || '',
       status: certificate.status ?? 1,
       isPublic: certificate.isPublic ?? true,
+      photoPath: certificate.photoPath || '',
       attachmentPath: certificate.attachmentPath || '',
       description: certificate.description || ''
     })
+    
+    // 如果有一寸照路径，设置文件列表用于显示
+    if (certificate.photoPath) {
+      photoFileList.value = [{
+        name: certificate.photoPath.split('/').pop() || '一寸照',
+        url: certificate.photoPath
+      } as UploadFile]
+    }
     
     // 如果有附件路径，设置文件列表用于显示
     if (certificate.attachmentPath) {
