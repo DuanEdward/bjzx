@@ -548,8 +548,8 @@ const getStatusText = (status: number) => {
                     // 一寸照位置
                     top: 19.5%;
                     left: 60%;
-                    width: 8%; // 一寸照宽度约为证书宽度的8%
-                    height: 10.5%; // 一寸照高度约为证书高度的10.5%（25mm×35mm的比例）
+                    width: 13%; // 一寸照宽度
+                    height: 11.7%; // 一寸照高度
                     display: flex;
                     align-items: center;
                     justify-content: center;
